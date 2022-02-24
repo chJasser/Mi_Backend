@@ -1,8 +1,11 @@
 const mongoose = require("mongoose");
+
 const Schema = mongoose.Schema;
 const User = require("./user");
+const extendSchema = require("./mongoose-extend-schema");
+const userSchema = User.schema();
 
-const Student = new Schema({
+const StudentSchema = extendSchema(userSchema, {
   about: {
     type: String,
     required: true,
@@ -20,7 +23,5 @@ const Student = new Schema({
     },
   ],
 });
-
-const StudentSchema = User.discriminator("StudentSchema", Student);
 
 module.exports = mongoose.model("student", StudentSchema);

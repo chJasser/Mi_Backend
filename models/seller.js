@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const extendSchema = require("./mongoose-extend-schema");
 const User = require("./user");
 
-const Seller = new Schema({
+const userSchema = User.schema();
+const SellerSchema = extendSchema(userSchema, {
   rib: {
     type: Number,
     required: true,
@@ -14,7 +16,5 @@ const Seller = new Schema({
     },
   ],
 });
-
-const SellerSchema = User.discriminator("SellerSchema", Seller);
 
 module.exports = mongoose.model("seller", SellerSchema);
