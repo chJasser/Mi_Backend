@@ -6,25 +6,50 @@ const logger = require("morgan");
 //database configuration
 require("./database/mongoDB");
 
-//routes
-// const indexRouter = require("./routes/index");
-// const usersRouter = require("./routes/users");
+// routes
+
+const adminRouter = require("./routes/admins");
+const chapterRouter = require("./routes/chapters");
+const courseCommentsRouter = require("./routes/courseComments");
+const courseRouter = require("./routes/courses");
+const invoiceDetailsRouter = require("./routes/invoiceDetails");
+const invoiceRouter = require("./routes/invoices");
+const productReviewsRouter = require("./routes/productReviews");
+const productRouter = require("./routes/products");
+const reclamationRouter = require("./routes/reclamations");
+const resourceRouter = require("./routes/resources");
+const sellerRouter = require("./routes/sellers");
+const studentRouter = require("./routes/students");
+const superAdminRouter = require("./routes/superAdmins");
+const teacherRouter = require("./routes/teachers");
+const usersRouter = require("./routes/users");
 
 const app = express();
 
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
-
 app.use(logger("dev"));
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
+app.use("/admin", usersRouter);
+app.use("/teachers", usersRouter);
+app.use("/students", usersRouter);
+app.use("/courses", usersRouter);
+app.use("/reclamations", usersRouter);
+app.use("/products", usersRouter);
+app.use("/sellers", usersRouter);
+app.use("/product_reviews", usersRouter);
+app.use("/invoices", usersRouter);
+app.use("/chapters", usersRouter);
+app.use("/course_comments", usersRouter);
+app.use("/resources", usersRouter);
+app.use("/chapters", usersRouter);
 
+app.use("/", (req, res) => {
+  res.send("welcome to MI universe!");
+});
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
@@ -32,8 +57,7 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-  no;
-  res.render("error");
+  console.log(err.message);
 });
 
 module.exports = app;
