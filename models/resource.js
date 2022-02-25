@@ -1,12 +1,15 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const ResourceSchema = new Schema({
-  type: {
-    type: String,
-    required: true,
+const ResourceSchema = new Schema(
+  {
+    type: {
+      type: String,
+      required: true,
+    },
+    path: {
+      type: String,
+    },
   },
-  path: {
-    type: String,
-  },
-});
-module.exports = mongoose.model("resource", ResourceSchema);
+  { timestamps: true }
+);
+module.exports = mongoose.model("Resource", ResourceSchema);

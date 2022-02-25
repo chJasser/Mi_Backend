@@ -18,9 +18,9 @@ const InvoiceDetailsSchema = new Schema({
   },
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "product",
+    ref: "Product",
     required: true,
   },
 });
 
-module.exports = mongoose.model("invoiceDetails", InvoiceDetailsSchema);
+module.exports = mongoose.model("InvoiceDetails", InvoiceDetailsSchema);

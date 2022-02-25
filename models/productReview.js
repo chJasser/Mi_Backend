@@ -1,24 +1,22 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const ProductReview = new Schema({
-  content: {
-    type: String,
-    maxLength: 255,
-    required: true,
+const ProductReview = new Schema(
+  {
+    content: {
+      type: String,
+      maxLength: 255,
+      required: true,
+    },
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
   },
-  createdAt: Date.now(),
-  updatedAt: {
-    type: Date,
-    default: Date.now(),
-  },
-  creator: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
-  },
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "product",
-  },
-});
-module.exports = mongoose.model("productReview", ProductReview);
+  { timestamps: true }
+);
+module.exports = mongoose.model("ProductReview", ProductReview);

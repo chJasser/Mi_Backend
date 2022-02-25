@@ -1,12 +1,16 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-const extendSchema = require("./mongoose-extend-schema");
-const userSchema = User.schema();
 
-const AdminSchema = extendSchema(userSchema, {
-  isAdmin: {
-    type: Boolean,
-    default: true,
+const AdminSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
+    isAdmin: {
+      type: Boolean,
+      default: true,
+    },
   },
-});
-module.exports = mongoose.model("admin", AdminSchema);
+  { timestamps: true }
+);
+module.exports = mongoose.model("Admin", AdminSchema);

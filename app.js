@@ -33,19 +33,19 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/admin", usersRouter);
-app.use("/teachers", usersRouter);
-app.use("/students", usersRouter);
-app.use("/courses", usersRouter);
-app.use("/reclamations", usersRouter);
-app.use("/products", usersRouter);
-app.use("/sellers", usersRouter);
-app.use("/product_reviews", usersRouter);
-app.use("/invoices", usersRouter);
-app.use("/chapters", usersRouter);
-app.use("/course_comments", usersRouter);
-app.use("/resources", usersRouter);
-app.use("/chapters", usersRouter);
+app.use("/admin", adminRouter);
+app.use("/teachers", teacherRouter);
+app.use("/students", studentRouter);
+app.use("/courses", courseRouter);
+app.use("/reclamations", reclamationRouter);
+app.use("/products", productRouter);
+app.use("/sellers", sellerRouter);
+app.use("/product_reviews", productReviewsRouter);
+app.use("/invoices", invoiceRouter);
+app.use("/chapters", chapterRouter);
+app.use("/course_comments", courseRouter);
+app.use("/resources", resourceRouter);
+app.use("/chapters", chapterRouter);
 
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
