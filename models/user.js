@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 // Create Schema
 const UserSchema = new Schema({
   cin: {
-    type: integer,
+    type: Number,
     required: true,
     unique: true,
   },
@@ -44,7 +44,7 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
-  Zip_Code: {
+  zip_Code: {
     type: String,
     required: true,
   },
@@ -53,7 +53,7 @@ const UserSchema = new Schema({
     required: true,
   },
   phoneNmuber: {
-    type: String,
+    type: Nmuber,
     required: true,
   },
   isAdmin: {
@@ -65,4 +65,4 @@ const UserSchema = new Schema({
     default: Date.now,
   },
 });
-module.exports = User = mongoose.model("users", UserSchema);
+module.exports = User = mongoose.model("user", UserSchema);
