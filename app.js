@@ -13,6 +13,7 @@ const chapterRouter = require("./routes/chapters");
 const courseCommentsRouter = require("./routes/courseComments");
 const courseRouter = require("./routes/courses");
 const invoiceDetailsRouter = require("./routes/invoiceDetails");
+const productImagesRouter = require("./routes/productImages");
 const invoiceRouter = require("./routes/invoices");
 const productReviewsRouter = require("./routes/productReviews");
 const productRouter = require("./routes/products");
@@ -43,9 +44,10 @@ app.use("/sellers", sellerRouter);
 app.use("/product_reviews", productReviewsRouter);
 app.use("/invoices", invoiceRouter);
 app.use("/chapters", chapterRouter);
-app.use("/course_comments", courseRouter);
+app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
+app.use("/productImages", productImagesRouter);
 
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
