@@ -7,7 +7,7 @@ const logger = require("morgan");
 require("./database/mongoDB");
 
 // routes
-
+const authRouter = require("./routes/auth");
 const adminRouter = require("./routes/admins");
 const chapterRouter = require("./routes/chapters");
 const courseCommentsRouter = require("./routes/courseComments");
@@ -34,7 +34,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/admin", adminRouter);
+app.use("/auth", authRouter);
+app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);
 app.use("/courses", courseRouter);
