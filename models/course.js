@@ -7,11 +7,6 @@ const CourseSchema = new Schema(
       type: String,
       required: true,
     },
-    createdAt: {
-      type: Date,
-      required: true,
-      default: date.now(),
-    },
     description: {
       type: String,
       maxLength: 100,
@@ -51,16 +46,15 @@ const CourseSchema = new Schema(
       required: true,
       default: "english",
     },
-    chapters: [
+    teacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teacher",
+    },
+
+    students: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Chapter",
-      },
-    ],
-    comments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "CourseComment",
+        ref: "Student",
       },
     ],
   },

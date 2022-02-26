@@ -2,13 +2,9 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 // Create Schema
+
 const UserSchema = new Schema(
   {
-    cin: {
-      type: Number,
-      required: true,
-      unique: true,
-    },
     userName: {
       type: String,
       required: true,
@@ -45,10 +41,7 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    zip_Code: {
-      type: String,
-      required: true,
-    },
+    
     profilePicture: {
       type: String,
       required: true,
@@ -58,9 +51,9 @@ const UserSchema = new Schema(
       required: true,
       maxLength: 8,
     },
-    isAdmin: {
-      type: Boolean,
-      default: false,
+    role: {
+      enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
+      default: "user",
     },
   },
   { timestamps: true }

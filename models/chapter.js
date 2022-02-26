@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const ChapterSchema = new ChapterSchema(
+const ChapterSchema = new Schema(
   {
     title: {
       type: String,
@@ -13,6 +13,10 @@ const ChapterSchema = new ChapterSchema(
         ref: "Resource",
       },
     ],
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
   },
   { timestamps: true }
 );

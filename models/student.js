@@ -12,10 +12,10 @@ const StudentSchema = new mongoose.Schema(
       maxLength: 255,
     },
     interestedIn: [String],
-    teachers: [
+    courses: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "teacher",
+        ref: "Course",
       },
     ],
   },

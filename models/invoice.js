@@ -19,12 +19,6 @@ const InvoiceSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
     },
-    invoiceDetails: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "invoiceDetails",
-      },
-    ],
   },
   { timestamps: true }
 );
