@@ -23,7 +23,8 @@ const studentRouter = require("./routes/students");
 const superAdminRouter = require("./routes/superAdmins");
 const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
-
+const rateCourseRouter = require("./routes/rateCourses");
+const rateProductRouter = require("./routes/rateProducts");
 const app = express();
 
 app.use(logger("dev"));
@@ -43,10 +44,14 @@ app.use("/sellers", sellerRouter);
 app.use("/product_reviews", productReviewsRouter);
 app.use("/invoices", invoiceRouter);
 app.use("/chapters", chapterRouter);
-app.use("/course_comments", courseRouter);
+app.use("/course_comments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
-
+app.use("/users", usersRouter);
+app.use("/invoice_details", invoiceDetailsRouter);
+app.use("/rate_course", rateCourseRouter);
+app.use("/rate_product", rateProductRouter);
+rateCourseRouter
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
 });
