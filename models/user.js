@@ -5,11 +5,7 @@ const Schema = mongoose.Schema;
 
 const UserSchema = new Schema(
   {
-    userName: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+    userName: firstName + " " + lastName,
     firstName: {
       type: String,
       required: true,
@@ -41,7 +37,7 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    
+
     profilePicture: {
       type: String,
       required: true,
