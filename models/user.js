@@ -59,9 +59,9 @@ const UserSchema = new Schema(
       required: true,
       maxLength: 8,
     },
-    isAdmin: {
-      type: Boolean,
-      default: false,
+    role: {
+      enum: ["user","teacher","seller","student","admin","super_admin"],
+      default: "user",
     },
   },
   { timestamps: true }

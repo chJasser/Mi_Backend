@@ -16,6 +16,11 @@ const InvoiceDetailsSchema = new Schema({
     required: true,
     default: 0,
   },
+  invoice: 
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
+    },
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",

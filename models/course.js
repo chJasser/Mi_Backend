@@ -51,16 +51,15 @@ const CourseSchema = new Schema(
       required: true,
       default: "english",
     },
-    chapters: [
+    teacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teacher",
+    },
+
+    students: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Chapter",
-      },
-    ],
-    comments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "CourseComment",
+        ref: "Student",
       },
     ],
   },

@@ -13,6 +13,10 @@ const ChapterSchema = new ChapterSchema(
         ref: "Resource",
       },
     ],
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
   },
   { timestamps: true }
 );
