@@ -1,10 +1,16 @@
 const createError = require("http-errors");
 const express = require("express");
+const app = express();
+
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 //database configuration
 require("./database/mongoDB");
+const passport = require("passport");
+const session = require("express-session");
+
+require("./middleware/passport");
 
 // routes
 const authRouter = require("./routes/auth");
@@ -25,8 +31,19 @@ const superAdminRouter = require("./routes/superAdmins");
 const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
 
-const app = express();
+//passport & session  config
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
+
+//logging middleware
 app.use(logger("dev"));
 app.use(express.json());
 
@@ -49,6 +66,7 @@ app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/productImages", productImagesRouter);
+app.use("/users", usersRouter);
 
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");

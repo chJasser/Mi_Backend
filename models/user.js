@@ -56,6 +56,10 @@ const UserSchema = new Schema(
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
       default: "user",
     },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
