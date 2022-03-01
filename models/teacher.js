@@ -12,12 +12,16 @@ const TeacherSchema = new mongoose.Schema(
       required: true,
       maxLength: 255,
     },
-    
-    degrees: [String],
-    rib: {
-      type: Number,
+
+    degrees:{
+      type:  Array,
       required: true,
     },
+    rib: {
+      type: String,
+      required: true,
+    },
+    
   },
   { timestamps: true }
 );

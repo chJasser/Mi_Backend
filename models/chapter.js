@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const ChapterSchema = new ChapterSchema(
+const ChapterSchema = new Schema(
   {
     title: {
       type: String,
