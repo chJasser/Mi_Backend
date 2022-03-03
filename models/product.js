@@ -3,9 +3,9 @@ const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema(
   {
-    seller:{
+    user:{
       type:mongoose.Schema.Types.ObjectId,
-      ref:"Seller",
+      ref:"User",
     },
 
     label: {
@@ -61,10 +61,12 @@ const ProductSchema = new Schema(
     },
     images: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "ProductImage",
+        path:{
+          type:String,
+        }
       },
     ],
+    
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,

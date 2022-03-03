@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 
 const UserSchema = new Schema(
   {
-    userName: firstName + " " + lastName,
+    
     firstName: {
       type: String,
       required: true,
@@ -14,6 +14,7 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    
     email: {
       type: String,
       required: true,
@@ -49,8 +50,15 @@ const UserSchema = new Schema(
     },
     role: {
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
+      type:String,
       default: "user",
     },
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true }
 );

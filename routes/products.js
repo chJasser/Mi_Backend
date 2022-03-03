@@ -1,54 +1,126 @@
 var express = require("express");
 var router = express.Router();
 const ProductImage = require("../models/productImage");
-var auth=require("../middlewares/verifyToken");
-var productValidator=require("../validators/productValidator");
-const Product = require("../models/product");
 
-router.get("/",auth, (req, res) => {
-    if (req.user.role=="seller"){
+
+var{productValidator} =require("../validators/productValidator");
+const Product = require("../models/product");
+const User=require("../models/user");
+const { validationResult } = require("express-validator");
+const verifyToken=require("../middlewares/verifyToken")
+
+router.get("/",verifyToken,(req, res) => {
+    if (req.user.role=="user"){
         seller= req.user;
         }
         Product.find({
-        seller:seller.id
+        user:seller.id
 
         }).then(products=>res.json(products))
         .catch(err=>
            console.log(err.message))
-});
+           });
 
-router.post('/addproducts',[auth,productValidator],(req, res)=>{
-    const errors=validationResult(req, res);
+router.post('/addproducts',verifyToken,(req, res)=>{
+    const errors=validationResult(req);
         if(!errors.isEmpty()){
             res.json({errors:errors.array()});
             }
-            const newproduct = new Product({
-                label: req.body.label,
-                category:req.body.categorty,
-                marque:req.body.marque,
-                price:req.body.price,
-                reference:req.body.reference,
-                state:req.body.state,
-                type:req.body.type,
-                seller:req.user.id
+            
+            //const savedimages = [];
+           
+                
+                
+               
+                   //res.json(savedproductimage);
+                //  savedimages.push(savedproductimage._id);
 
-            });
+                console.log(req.user);
+                const newproduct = new Product({
+                    label: req.body.label,
+                    category:req.body.category,
+                    marque:req.body.marque,
+                    price:req.body.price,
+                    reference:req.body.reference,
+                    state:req.body.state,
+                    type:req.body.type,
+                    user:req.user.id,
+                    images:req.body.images,
+    
+                });   
 
-        newproduct.save((err,savedproduct)=>{
-        const newproductimage= new ProductImage({
-             path: req.body.path,
-             product:savedproduct
 
-        })
-        newproductimage.save((err,savedprouctimage) => {
-            if(err){
-                console.log(err.message);
+                newproduct.save(function(err, product) {
+                    if(err) {
+                        console.log(err.message);
+                    }
+                 res.json(product);
+
+                 User.findByIdAndUpdate(product.user,{$push:{"products":product}},(err,saveduser)=> {
+                    
+                     //res.json(saveduser);
+                    })
+                 })
+
+
+       
+})
+
+router.put("/:id",verifyToken,(req, res)=>{
+ const {label,category,marque,price,reference,state,type,images}=req.body;
+ let Productfeilds = {}
+    if(label) Productfeilds.label = label
+    if(category) Productfeilds.category = category
+    if(marque) Productfeilds.marque = marque
+    if(price) Productfeilds.price = price
+    if(reference) Productfeilds.reference = reference
+    if(state) Productfeilds.state = state
+    if(type) Productfeilds.type = type
+    if(images) Productfeilds.images = images
+
+Product.findById(req.params.id)
+        .then(product =>{
+            if(!product){
+                return res.json({msg: 'product not found'})
+            }else if(product.user.toString() !== req.user.id){
+                res.json({msg: 'Noth authorized'})
+            }else{
+                Product.findByIdAndUpdate(req.params.id, {$set: Productfeilds}, (err, data)=>{
+                   // res.json({msg: "Music Updated!"})
+                   res.json(data);
+
+                })
             }
         })
+        .catch(err => console.log(err.messag))
 
 
 
-        })
+
+})
+
+
+router.delete("/:id",verifyToken,(req, res)=>{
+    Product.findById(req.params.id)
+    .then(product =>{
+        if(!product){
+            return res.json({msg: 'product not found'})
+        }else if(product.user.toString() !== req.user.id){
+            res.json({msg: 'Noth authorized'})
+        }else{
+            Product.findByIdAndDelete(req.params.id,  (err, data)=>{
+               res.json({msg: "Product Deleted!"})
+               
+
+            })
+        }
+    })
+    .catch(err => console.log(err.messag))
+
+
+
+
+
 })
 
 module.exports = router;

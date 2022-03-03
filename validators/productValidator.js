@@ -1,4 +1,4 @@
-const { check}=require("express-validator");
+const {validationResult, check}=require("express-validator");
 
 exports.productValidator=[
     check("label", "label is required")
