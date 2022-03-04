@@ -25,30 +25,24 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
     },
     birthDate: {
       type: Date,
-      required: true,
     },
     sex: {
       type: String,
       enum: ["man", "woman"],
-      required: true,
     },
 
     address: {
       type: String,
-      required: true,
     },
 
     profilePicture: {
       type: String,
-      required: true,
     },
     phoneNumber: {
       type: Number,
-      required: true,
       maxLength: 8,
     },
     role: {

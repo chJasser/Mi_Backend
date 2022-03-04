@@ -9,27 +9,29 @@ const passport = require("passport");
 
 //REGISTER
 router.post("/register", [userValidator], async (req, res) => {
-  let hashedPassword = await bcrypt.hash(req.body.password, 10);
   const errors = validationResult(req).errors;
   if (errors.length !== 0) return res.status(403).json(errors);
-  const newUser = new User({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    userName: req.body.firstName + " " + req.body.lastName,
-    email: req.body.email,
-    birthDate: req.body.birthDate,
-    sex: req.body.sex,
-    address: req.body.address,
-    phoneNumber: req.body.phoneNumber,
-    profilePicture: req.body.profilePicture,
-    password: hashedPassword,
-    role: req.body.role,
-  });
-  try {
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  } catch (err) {
-    res.status(500).json(err);
+  else {
+    let hashedPassword = await bcrypt.hash(req.body.password, 10);
+    let newUser = new User({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      userName: req.body.firstName + " " + req.body.lastName,
+      email: req.body.email,
+      birthDate: req.body.birthDate,
+      sex: req.body.sex,
+      address: req.body.address,
+      phoneNumber: req.body.phoneNumber,
+      profilePicture: req.body.profilePicture,
+      password: hashedPassword,
+      role: req.body.role,
+    });
+    try {
+      const savedUser = await newUser.save();
+      res.status(201).json(savedUser);
+    } catch (err) {
+      res.status(500).json(err);
+    }
   }
 });
 
