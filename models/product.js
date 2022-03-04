@@ -59,13 +59,16 @@ const ProductSchema = new Schema(
       enum: ["instrument", "gear"],
       default: "instrument",
     },
-    images: [
-      {
-        path:{
-          type:String,
-        }
-      },
-    ],
+    productImage: 
+      [
+        {type:String,
+        default:[]
+        },
+      ]
+          
+    
+      ,
+    
     
     reviews: [
       {

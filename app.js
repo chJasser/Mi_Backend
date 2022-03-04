@@ -66,6 +66,7 @@ app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/productImages", productImagesRouter);
+app.use("/uploads", express.static("uploads"));
 
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
