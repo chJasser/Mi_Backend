@@ -25,30 +25,24 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
     },
     birthDate: {
       type: Date,
-      required: true,
     },
     sex: {
       type: String,
       enum: ["man", "woman"],
-      required: true,
     },
 
     address: {
       type: String,
-      required: true,
     },
 
     profilePicture: {
       type: String,
-      required: true,
     },
     phoneNumber: {
       type: Number,
-      required: true,
       maxLength: 8,
     },
     role: {
@@ -56,12 +50,10 @@ const UserSchema = new Schema(
       //enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
       default: "user",
     },
-    products: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

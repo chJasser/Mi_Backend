@@ -1,13 +1,52 @@
 const createError = require("http-errors");
 const express = require("express");
+const app = express();
+const passport = require("passport");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const cookieSession = require("cookie-session");
+
+/*
+ **
+ **
+ **
+ **
+ ***
+ ***
+ ***
+ ***/
 //database configuration
 require("./database/mongoDB");
+/*
+ **
+ **
+ **
+ **
+ ***
+ ***
+ ***
+ ***/
 
+require("./middleware/passport");
+app.use(logger("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
+/*
+**
+**
+**
+**
+
+***
+***
+***
+***/
 // routes
 const authRouter = require("./routes/auth");
+const authenticationRouter = require("./routes/authentication");
 const adminRouter = require("./routes/admins");
 const chapterRouter = require("./routes/chapters");
 const courseCommentsRouter = require("./routes/courseComments");
@@ -24,17 +63,63 @@ const studentRouter = require("./routes/students");
 const superAdminRouter = require("./routes/superAdmins");
 const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
+/*
+**
+**
+**
+**
 
-const app = express();
+***
+***
+***
+***/
+/*
+**
+**
+**
+**
 
-app.use(logger("dev"));
-app.use(express.json());
+***
+***
+***
+***/
+//passport & session  config
+/*
+**
+**
+**
+**
 
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+***
+***
+***
+***/
+require("./middleware/passportAuth")(passport);
+app.use(
+  cookieSession({
+    name: "session",
+    keys: [process.env.SESSION_SECRET],
+    maxAge: 24 * 60 * 60 * 100,
+  })
+);
 
-app.use("/auth", authRouter);
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+/*
+**
+**
+**
+**
+
+***
+***
+***
+***/
+//routes
+// app.use("/auth", authRouter);
+app.use("/authentication", authenticationRouter);
 app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);
@@ -49,7 +134,17 @@ app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/productImages", productImagesRouter);
+app.use("/users", usersRouter);
+/*
+**
+**
+**
+**
 
+***
+***
+***
+***/
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
 });
