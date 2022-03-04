@@ -53,9 +53,15 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
+      //enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
       default: "user",
     },
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true }
 );

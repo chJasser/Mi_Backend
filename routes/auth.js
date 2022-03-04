@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { userValidator } = require("../validators/userValidator");
 
+const jwtSecret = "secret"
+
 //REGISTER
 router.post("/register", userValidator, async (req, res) => {
   originalPassword = req.body.password;
@@ -59,7 +61,8 @@ router.post("/login", async (req, res) => {
           id: user._id,
           role: user.role,
         },
-        process.env.JWT_SEC,
+       // process.env.JWT_SEC,
+        jwtSecret,
         { expiresIn: "3d" }
       );
       const { password, ...others } = user._doc;
