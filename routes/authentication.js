@@ -2,13 +2,22 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const passport = require("passport");
-const { validatePassword, issueJWT, sendConfirmationEmail, verifyUser, resetPassword } = require("../lib/utils");
+const { validatePassword, issueJWT, sendConfirmationEmail, verifyUser, resetPassword, auth } = require("../lib/utils");
 const { userValidator } = require("../validators/userValidator");
 const { validationResult } = require("express-validator");
 var crypto = require("crypto");
 
 // register user 
 
+
+
+const {
+  verifyTokenTeacher,
+  verifyTokenSeller,
+  verifyTokenStudent,
+  verifyTokenSuper,
+  verifyTokenAdmin,
+} = require("../middleware/verifyToken");
 
 router.post("/register", [userValidator], async (req, res) => {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
@@ -151,16 +160,14 @@ router.post("/login", (req, res) => {
     });
 });
 
-router.get(
-  "/protected",
-  passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
-    res.status(200).json({
-      success: true,
-      msg: "You are successfully authenticated to this route!",
-    });
-  }
-);
+router.get("/protected", [auth, verifyTokenStudent], (req, res, next) => {
+  console.log(req.user);
+
+  res.status(200).json({
+    success: true,
+    msg: "You are successfully authenticated to this route!",
+  });
+});
 /**
  *
  *

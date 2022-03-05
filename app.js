@@ -44,14 +44,6 @@ app.use(express.static(path.join(__dirname, "public")));
 ***
 ***
 ***/
-//routes
- 
-
-
-
-// view engine setup
-
-
 // routes
 
 const authenticationRouter = require("./routes/authentication");
@@ -98,9 +90,6 @@ const usersRouter = require("./routes/users");
 **
 **
 
-app.use(logger("dev"));
-app.use(express.json());
-
 ***
 ***
 ***
@@ -116,7 +105,6 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 /*
 **

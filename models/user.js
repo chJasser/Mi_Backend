@@ -5,7 +5,6 @@ const crypto = require('crypto');
 
 const UserSchema = new Schema(
   {
-
     firstName: {
       type: String,
       required: true,

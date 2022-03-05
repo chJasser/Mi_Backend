@@ -4,10 +4,11 @@ const bcrypt = require("bcrypt");
 var router = express.Router();
 const { verifyTokenAndAdmin, verifyTokenAndAuthorization, verifyPassword } = require("../middleware/verifyToken");
 const { validationResult, check } = require("express-validator");
-const { upload } = require("../lib/utils");
+
+const { auth, multerUpload } = require("../lib/utils");
 
 /* GET blocked users . */
-router.get("/block", verifyTokenAndAdmin, async (req, res) => {
+router.get("/block", auth, async (req, res) => {
   try {
     const users = await User.find({ isBlocked: true }).exec();
     if (users.length) {
@@ -20,7 +21,7 @@ router.get("/block", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 /* GET blocked user . */
-router.put("/block/:id", verifyTokenAndAdmin, async (req, res) => {
+router.put("/block/:id", auth, async (req, res) => {
   try {
     let userToBeBlocked = await User.findById(req.params.id);
 
@@ -37,7 +38,7 @@ router.put("/block/:id", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 /* GET users . */
-router.get("/", verifyTokenAndAdmin, async (req, res) => {
+router.get("/", auth, async (req, res) => {
   const users = await User.find({});
   if (!users.length) return res.status(404).json("no users found");
   res.json(users);
@@ -53,7 +54,8 @@ router.get("/email/:email", (req, res) => {
 
 
 /* GET user by id . */
-router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
+
+router.get("/:id", auth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -66,7 +68,7 @@ router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
 });
 
 /* delete user by id . */
-router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
     const userToBeDeleted = await User.findById(req.params.id);
     if (userToBeDeleted) {
@@ -175,7 +177,7 @@ router.put(
 router.put(
   "/img/:id",
   verifyTokenAndAuthorization,
-  upload.single('file'),
+  multerUpload.single('file'),
   async (req, res) => {
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
       return res.status(500).json("Object missing");
@@ -210,4 +212,54 @@ router.put(
 
 
 
+router.put(
+  "/updateProfile/:id",
+  auth,
+  multerUpload.single("picture"),
+  (req, res) => {
+    try {
+      console.log(req.user);
+      if (req.user.id === req.params.id) {
+        const obj = JSON.parse(JSON.stringify(req.body));
+        console.log(req.body.firstName);
+        const {
+          firstName,
+          lastName,
+          email,
+          birthDate,
+          sex,
+          phoneNumber,
+          address,
+        } = req.body;
+        let userFields = {};
+        if (firstName) userFields.firstName = firstName;
+        if (lastName) userFields.lastName = lastName;
+        if (email) userFields.email = email;
+        if (birthDate) userFields.birthDate = birthDate;
+        if (sex) userFields.sex = sex;
+        if (phoneNumber) userFields.phoneNumber = phoneNumber;
+        if (address) userFields.address = address;
+        if (req.file) userFields.profilePicture = req.file.path;
+        console.log("im here");
+        User.findByIdAndUpdate(req.user.id, {
+          $set: userFields,
+        })
+          .then((result) => {
+            res.status(200).json("updated successfully !");
+          })
+          .catch((error) => {
+            return res.status(500).json("error !");
+          });
+      } else {
+        res
+          .status(400)
+          .json(
+            "not the same id that you logged in with ... something went wrong !"
+          );
+      }
+    } catch (error) {
+      return res.status(500).json("error !");
+    }
+  }
+);
 module.exports = router;

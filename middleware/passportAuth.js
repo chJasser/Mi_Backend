@@ -20,8 +20,11 @@ const options = {
   secretOrKey: process.env.JWT_SEC,
 };
 const jasonWebTokenStrategy = new JwtStrategy(options, (jwt_payload, done) => {
-  console.log(jwt_payload);
+  
   User.findOne({ email: jwt_payload.email }, (err, user) => {
+
+
+    
     if (err) {
       return done(err, false);
     }

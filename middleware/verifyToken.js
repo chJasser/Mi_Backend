@@ -37,6 +37,19 @@ const verifyTokenAndAdmin = (req, res, next) => {
     }
   });
 };
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
 const verifyTokenAndTeacher = (req, res, next) => {
   verifyToken(req, res, () => {
@@ -89,12 +102,62 @@ const verifyPassword = (req, res, next) => {
   }
 };
 
+
+const verifyTokenTeacher = (req, res, next) => {
+  if (req.user.role === "teacher" || req.user.role === "admin") {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      msg: "you're not a teacher",
+    });
+  }
+};
+
+const verifyTokenSeller = (req, res, next) => {
+  if (req.user.role === "seller" || req.user.role === "admin") {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      msg: "you're not a seller",
+    });
+  }
+};
+
+const verifyTokenStudent = (req, res, next) => {
+  if (req.user.role === "student" || req.user.role === "admin") {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      msg: "you're not a student",
+    });
+  }
+};
+const verifyTokenAdmin = (req, res, next) => {
+  if (req.user.role === "admin" || req.user.role === "super_admin") {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      msg: "you're not an admin",
+    });
+  }
+};
+const verifyTokenSuper = (req, res, next) => {
+  if (req.user.role === "super_admin") {
+    next();
+  }
+};
 module.exports = {
   verifyToken,
-  verifyTokenAndTeacher,
-  verifyTokenAndAdmin,
-  verifyTokenAndStudent,
-  verifyTokenAndSeller,
   verifyTokenAndAuthorization,
-  verifyPassword
+  verifyTokenAndAdmin,
+  verifyTokenTeacher,
+  verifyTokenSeller,
+  verifyTokenStudent,
+  verifyPassword,
+  verifyTokenSuper,
+  verifyTokenAdmin,
 };
