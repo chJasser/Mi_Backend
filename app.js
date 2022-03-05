@@ -28,7 +28,6 @@ require("./database/mongoDB");
  ***
  ***/
 
-require("./middleware/passport");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -45,7 +44,7 @@ app.use(express.static(path.join(__dirname, "public")));
 ***
 ***/
 // routes
-const authRouter = require("./routes/auth");
+
 const authenticationRouter = require("./routes/authentication");
 const adminRouter = require("./routes/admins");
 const chapterRouter = require("./routes/chapters");
@@ -105,7 +104,6 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 /*
 **
