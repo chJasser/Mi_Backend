@@ -1,11 +1,11 @@
 const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
-  const authHeader = req.header("x-auth-token");
+  const authHeader = req.header.token;
   const jwtSecret = "secret"
   if (authHeader) {
-    //const token = authHeader.split(" ")[1];
-    jwt.verify(authHeader,jwtSecret, (err, user) => {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token,jwtSecret, (err, user) => {
       if (err) res.status(403).json("Token is not valid!");
       req.user = user;
       next();
@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-/*const verifyTokenAndAuthorization = (req, res, next) => {
+const verifyTokenAndAuthorization = (req, res, next) => {
   verifyToken(req, res, () => {
     if (req.user.id === req.params.id || req.user.role === "admin") {
       next();
@@ -33,8 +33,8 @@ const verifyTokenAndAdmin = (req, res, next) => {
       res.status(403).json("You are not allowed to do that!");
     }
   });
-};*/
+};
 
-module.exports =  verifyToken;
- /* verifyTokenAndAuthorization,
-  verifyTokenAndAdmin,*/
+module.exports =  verifyToken,
+  verifyTokenAndAuthorization,
+  verifyTokenAndAdmin;

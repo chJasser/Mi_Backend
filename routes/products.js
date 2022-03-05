@@ -38,11 +38,11 @@ const upload=multer({storage: storage,
 
 router.get("/",verifyToken,(req, res) => {
 
-    if (req.user.role=="user"){
-        seller= req.user;
+    if (req.user_role=="seller"){
+        seller= req._id;
         }
         Product.find({
-        user:seller.id
+        seller:seller
         
 
         }).then(products=>res.json(products))
@@ -50,7 +50,7 @@ router.get("/",verifyToken,(req, res) => {
            console.log(err.message))
            });
 
-router.post('/addproducts',upload.array('files'),(req, res)=>{
+router.post('/addproducts',verifyToken,upload.array('files'),(req, res)=>{
     const errors=validationResult(req);
         if(!errors.isEmpty()){
             res.json({errors:errors.array()});
@@ -76,8 +76,7 @@ router.post('/addproducts',upload.array('files'),(req, res)=>{
                     reference:req.body.reference,
                     state:req.body.state,
                     type:req.body.type,
-                    //user:req.user.id,
-                    user:req.body.user,
+                    seller:req._id,
                     productImage:filesarray,
     
                 });   
