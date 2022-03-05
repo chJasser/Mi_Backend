@@ -74,7 +74,7 @@ router.post("/register", [userValidator], async (req, res) => {
 
 // verify email 
 
-router.get("/:confirmationCode", verifyUser)
+router.get("/email/:confirmationCode", verifyUser)
 
 // local login 
 router.post("/login", (req, res) => {

@@ -150,8 +150,7 @@ router.put(
                 { useFindAndModify: false },
                 (err, data) => {
                   if (err) {
-                    res.json({ msg: "email is used" });
-                  }
+                    res.json({ msg: "email id used" });}
                   else {
                     res.json({ msg: "user updated" });
                   }

@@ -1,6 +1,7 @@
 const dotenv = require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
+
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.token;
 
@@ -67,11 +68,13 @@ const verifyTokenAndSeller = (req, res, next) => {
   });
 };
 
+
 module.exports = {
   verifyToken,
   verifyTokenAndTeacher,
   verifyTokenAndAdmin,
   verifyTokenAndStudent,
   verifyTokenAndSeller,
-  verifyTokenAndAuthorization
+  verifyTokenAndAuthorization,
+  
 };
