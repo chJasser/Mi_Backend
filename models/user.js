@@ -5,6 +5,7 @@ const crypto = require('crypto');
 
 const UserSchema = new Schema(
   {
+    
     firstName: {
       type: String,
       required: true,
@@ -18,6 +19,7 @@ const UserSchema = new Schema(
       required: true,
       trim: true,
     },
+    
     email: {
       type: String,
       trim: true,
@@ -41,6 +43,7 @@ const UserSchema = new Schema(
     },
     profilePicture: {
       type: String,
+      
     },
     phoneNumber: {
       type: Number,
@@ -49,6 +52,7 @@ const UserSchema = new Schema(
     role: {
       type: String,
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
+      type:String,
       default: "user",
     },
     isBlocked: {
@@ -64,6 +68,12 @@ const UserSchema = new Schema(
       type: String,
       unique: true
     },
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true }
 );

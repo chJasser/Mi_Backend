@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 var router = express.Router();
 const { verifyTokenAndAdmin, verifyTokenAndAuthorization, verifyPassword } = require("../middleware/verifyToken");
 const { validationResult, check } = require("express-validator");
+const { upload } = require("../lib/utils");
 
 /* GET blocked users . */
 router.get("/block", verifyTokenAndAdmin, async (req, res) => {
@@ -119,13 +120,9 @@ router.put(
           birthDate,
           sex,
           address,
-          profilePicture,
           phoneNumber,
         } = req.body;
         let updateUser = {};
-        console.log(updateUser);
-
-        //build a event object
         if (firstName) updateUser.firstName = firstName;
         if (lastName) updateUser.lastName = lastName;
         if (userName) updateUser.userName = userName;
@@ -137,8 +134,8 @@ router.put(
         if (birthDate) updateUser.birthDate = birthDate;
         if (sex) updateUser.sex = sex;
         if (address) updateUser.address = address;
-        if (profilePicture) updateUser.profilePicture = profilePicture;
         if (phoneNumber) updateUser.phoneNumber = phoneNumber;
+        
         User.findById(req.params.id)
           .then((user) => {
             if (!user) {
@@ -166,5 +163,41 @@ router.put(
     }
   }
 );
+router.put(
+  "/img/:id",
+  verifyTokenAndAuthorization,
+  upload.single('file'),
+  async (req, res) => {
+    if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+      return res.status(500).json("Object missing");
+    } else {
+      User.findById(req.params.id)
+        .then((user) => {
+          if (!user) {
+            return res.json({ msg: "user not find" });
+          }
+          else {
+            User.findByIdAndUpdate(
+              req.params.id,
+              { $set: { profilePicture: JSON.stringify(req.file.filename) } },
+              { useFindAndModify: false },
+              (err, data) => {
+                if (err) {
+                  console.error(err);
+                }
+                else {
+                  res.json({ msg: "user updated" });
+                }
+              }
+            );
+          }
+        })
+        .catch((err) => console.log(err.message));
+
+    }
+  }
+);
+
+
 
 module.exports = router;

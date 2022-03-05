@@ -14,6 +14,7 @@ const InvoiceSchema = new Schema(
     state: {
       type: Boolean,
       required: true,
+      default:true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

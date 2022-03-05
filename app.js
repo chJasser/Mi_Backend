@@ -44,6 +44,14 @@ app.use(express.static(path.join(__dirname, "public")));
 ***
 ***
 ***/
+//routes
+ 
+
+
+
+// view engine setup
+
+
 // routes
 
 const authenticationRouter = require("./routes/authentication");
@@ -90,6 +98,9 @@ const usersRouter = require("./routes/users");
 **
 **
 
+app.use(logger("dev"));
+app.use(express.json());
+
 ***
 ***
 ***
@@ -135,12 +146,12 @@ app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/productImages", productImagesRouter);
 app.use("/users", usersRouter);
+app.use("/uploads", express.static("uploads"));
 /*
 **
 **
 **
 **
-
 ***
 ***
 ***
@@ -148,6 +159,7 @@ app.use("/users", usersRouter);
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
 });
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
