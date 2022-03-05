@@ -50,9 +50,7 @@ router.post("/addproducts", verifyToken, upload.array("files"), (req, res) => {
   if (!errors.isEmpty()) {
     res.json({ errors: errors.array() });
   }
-  console.log(req.file);
   let filesarray = [];
-  //const savedimages = [];
   req.files.forEach((element) => {
     filesarray.push(element.path);
   });
@@ -95,13 +93,12 @@ router.put("/:id", verifyToken, (req, res) => {
       if (!product) {
         return res.json({ msg: "product not found" });
       } else if (product.user.toString() !== req.user.id) {
-        res.json({ msg: "Noth authorized" });
+        res.json({ msg: "Not authorized" });
       } else {
         Product.findByIdAndUpdate(
           req.params.id,
           { $set: Productfeilds },
           (err, data) => {
-            // res.json({msg: "Music Updated!"})
             res.json(data);
           }
         );
