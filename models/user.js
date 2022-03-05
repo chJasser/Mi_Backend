@@ -5,6 +5,10 @@ const Schema = mongoose.Schema;
 
 const UserSchema = new Schema(
   {
+<<<<<<< HEAD
+=======
+    
+>>>>>>> origin/fakher
     firstName: {
       type: String,
       required: true,
@@ -13,11 +17,15 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+<<<<<<< HEAD
     userName: {
       type: String,
       required: true,
     },
 
+=======
+    
+>>>>>>> origin/fakher
     email: {
       type: String,
       required: true,
@@ -48,12 +56,22 @@ const UserSchema = new Schema(
     role: {
       type: String,
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
+      type:String,
       default: "user",
     },
+<<<<<<< HEAD
     isBlocked: {
       type: Boolean,
       default: false,
     },
+=======
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
+>>>>>>> origin/fakher
   },
   { timestamps: true }
 );

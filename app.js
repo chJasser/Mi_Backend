@@ -119,6 +119,7 @@ app.use(passport.session());
 // app.use("/auth", authRouter);
 app.use("/authentication", authenticationRouter);
 app.use("/admins", adminRouter);
+
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);
 app.use("/courses", courseRouter);
@@ -146,6 +147,7 @@ app.use("/users", usersRouter);
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
 });
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

@@ -6,10 +6,12 @@ const RateProductSchema = new Schema(
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
+      required: true,
     },
 
     number: {
       type: Number,
+      default:0,
     },
   },
   { timestamps: true }
