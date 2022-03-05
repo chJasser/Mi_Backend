@@ -2,7 +2,7 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const passport = require("passport");
-const { validatePassword, issueJWT, sendConfirmationEmail, verifyUser } = require("../lib/utils");
+const { validatePassword, issueJWT, sendConfirmationEmail, verifyUser, resetPassword } = require("../lib/utils");
 const { userValidator } = require("../validators/userValidator");
 const { validationResult } = require("express-validator");
 
@@ -51,7 +51,6 @@ router.post("/register", [userValidator], async (req, res) => {
         const userToken = issueJWT(user);
         user.confirmationCode = userToken.token.substring(7);
         user.save((err, user) => {
-
           if (err) {
             res.status(500).send({ message: err });
             return;
@@ -71,6 +70,41 @@ router.post("/register", [userValidator], async (req, res) => {
     }
   }
 });
+
+
+router.put("/restpassword/:email", async (req, res) => {
+
+  let user = await User.findOne({ email: req.params.email });
+  if (!user) {
+    return res.json("user not found !");
+  } else {
+    User.findByIdAndUpdate(
+      user._id,
+      { $set: { resetPasswordCode: "dddddddd" } },
+      { useFindAndModify: false },
+      (err, data) => {
+        if (err) {
+          console.error(err);
+        }
+        else {
+          res.send({
+            message:
+              "Please check your email to reset your password",
+          });
+          resetPassword(
+            user.lastName + " " + user.firstName,
+            user.email,
+            user.confirmationCode
+          );
+        }
+      }
+    );
+  }
+
+
+});
+
+
 
 // verify email 
 

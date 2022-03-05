@@ -43,6 +43,15 @@ router.get("/", verifyTokenAndAdmin, async (req, res) => {
   res.json(users);
 });
 
+// find user with email
+router.get("/email/:email", (req, res) => {
+  User.findOne({ email: req.params.email }, (err, user) => {
+    if (!user) return res.status(404).json("no user found");
+    res.json(user);
+  });
+});
+
+
 /* GET user by id . */
 router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
@@ -135,7 +144,7 @@ router.put(
         if (sex) updateUser.sex = sex;
         if (address) updateUser.address = address;
         if (phoneNumber) updateUser.phoneNumber = phoneNumber;
-        
+
         User.findById(req.params.id)
           .then((user) => {
             if (!user) {
@@ -197,6 +206,7 @@ router.put(
     }
   }
 );
+
 
 
 
