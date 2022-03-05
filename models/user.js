@@ -27,7 +27,6 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
     },
     birthDate: {
       type: Date,
@@ -45,7 +44,6 @@ const UserSchema = new Schema(
     },
     phoneNumber: {
       type: Number,
-      required: true,
       maxLength: 8,
     },
     role: {
@@ -56,6 +54,15 @@ const UserSchema = new Schema(
     isBlocked: {
       type: Boolean,
       default: false,
+    },
+    status: {
+      type: String,
+      enum: ['Pending', 'Active'],
+      default: 'Pending'
+    },
+    confirmationCode: {
+      type: String,
+      unique: true
     },
   },
   { timestamps: true }

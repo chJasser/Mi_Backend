@@ -19,7 +19,7 @@ router.post("/register", [teacherValidator], verifyToken, async (req, res) => {
     about,
     degrees,
     rib,
-    user: req.user.id
+    user: req.user._id
   });
   try {
     const savedTeacher = await newTeacher.save();

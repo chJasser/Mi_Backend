@@ -1,7 +1,9 @@
 var express = require("express");
 const User = require("../models/user");
 var router = express.Router();
-const { verifyTokenAndAdmin } = require("../middleware/verifyToken");
+const { verifyTokenAndAdmin, verifyTokenAndAuthorization } = require("../middleware/verifyToken");
+const { userValidator } = require("../validators/userValidator");
+const { validationResult, check } = require("express-validator");
 
 /* GET blocked users . */
 router.get("/block", verifyTokenAndAdmin, async (req, res) => {
@@ -41,7 +43,7 @@ router.get("/", verifyTokenAndAdmin, async (req, res) => {
 });
 
 /* GET user by id . */
-router.get("/:id", verifyTokenAndAdmin, async (req, res) => {
+router.get("/:id", verifyTokenAndAuthorization, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -70,5 +72,97 @@ router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 
-/* delete user by id . */
+
+//update personal informations 
+
+router.put(
+  "/:id",
+  [
+    check("firstName", "first name must be between 4 characters and 15 characters")
+      .isLength({ min: 4, max: 15 })
+      .optional(),
+    check("lastName", "last name must be between 4 characters and 15 characters")
+      .isLength({ min: 4, max: 15 })
+      .optional(),
+    check("email", "email is required")
+      .isEmail()
+      .withMessage("Must be a valid email address")
+      .optional(),
+    check("password")
+      .isLength({
+        min: 6,
+      })
+      .withMessage("Password must contain at least 6 characters")
+      .matches(/\d/)
+      .withMessage("password must contain a number"),
+
+    check("phoneNumber", "phone number is required").isLength({
+      min: 8,
+    }).optional(),
+
+  ],
+  verifyTokenAndAuthorization,
+  (req, res) => {
+    if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+      return res.status(500).json("Object missing");
+    } else {
+      const errors = validationResult(req).errors;
+      if (errors.length !== 0) return res.status(500).json(errors);
+      else {
+        const {
+          firstName,
+          lastName,
+          userName,
+          email,
+          password,
+          birthDate,
+          sex,
+          address,
+          profilePicture,
+          phoneNumber,
+        } = req.body;
+        let updateUser = {};
+
+        //build a event object
+        if (firstName) updateUser.firstName = firstName;
+        if (lastName) updateUser.lastName = lastName;
+        if (userName) updateUser.userName = userName;
+        if (email) updateUser.email = email;
+        if (password) updateUser.password = password;
+        if (birthDate) updateUser.birthDate = birthDate;
+        if (sex) updateUser.sex = sex;
+        if (address) updateUser.address = address;
+        if (profilePicture) updateUser.profilePicture = profilePicture;
+        if (phoneNumber) updateUser.phoneNumber = phoneNumber;
+
+
+
+        User.findById(req.params.id)
+          .then((user) => {
+            if (!user) {
+              return res.json({ msg: "user not find" });
+            }
+            // const uniqueEmail=verifyUniqueEmail(user,);
+            else {
+              User.findByIdAndUpdate(
+                req.params.id,
+                { $set: updateUser },
+                { useFindAndModify: false },
+                (err, data) => {
+                  if (err) {
+                    res.json({ msg: "email is used" });
+                  }
+                  else {
+                    res.json({ msg: "user updated" });
+                  }
+                }
+              );
+            }
+          })
+          .catch((err) => console.log(err.message));
+      }
+    }
+  }
+);
+
 module.exports = router;
