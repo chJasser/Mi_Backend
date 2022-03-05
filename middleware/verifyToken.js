@@ -1,6 +1,6 @@
 const dotenv = require("dotenv").config();
 const jwt = require("jsonwebtoken");
-
+const { passwordIsMatch, validatePassword } = require("../lib/utils");
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.token;
@@ -69,6 +69,26 @@ const verifyTokenAndSeller = (req, res, next) => {
 };
 
 
+const verifyPassword = (req, res, next) => {
+  if (req.body.oldPassword == undefined || req.body.oldPassword == "") {
+    res.status(401).json({ success: false, msg: "password is required !" });
+  }
+  else {
+    User.findById(req.params.id)
+      .then((user) => {
+
+        validatePassword(req.body.oldPassword, user.password).then((match) => {
+          if (match) {
+            next();
+          } else {
+            res.status(401).json({ success: false, msg: "wrong password !" });
+          }
+        });
+      })
+      .catch((e) => console.log("error", e));
+  }
+};
+
 module.exports = {
   verifyToken,
   verifyTokenAndTeacher,
@@ -76,5 +96,5 @@ module.exports = {
   verifyTokenAndStudent,
   verifyTokenAndSeller,
   verifyTokenAndAuthorization,
-  
+  verifyPassword
 };

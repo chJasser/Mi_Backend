@@ -1,8 +1,8 @@
 var express = require("express");
 const User = require("../models/user");
+const bcrypt = require("bcrypt");
 var router = express.Router();
-const { verifyTokenAndAdmin, verifyTokenAndAuthorization } = require("../middleware/verifyToken");
-const { userValidator } = require("../validators/userValidator");
+const { verifyTokenAndAdmin, verifyTokenAndAuthorization, verifyPassword } = require("../middleware/verifyToken");
 const { validationResult, check } = require("express-validator");
 
 /* GET blocked users . */
@@ -94,7 +94,7 @@ router.put(
       })
       .withMessage("Password must contain at least 6 characters")
       .matches(/\d/)
-      .withMessage("password must contain a number"),
+      .withMessage("password must contain a number").optional(),
 
     check("phoneNumber", "phone number is required").isLength({
       min: 8,
@@ -102,7 +102,8 @@ router.put(
 
   ],
   verifyTokenAndAuthorization,
-  (req, res) => {
+  verifyPassword,
+  async (req, res) => {
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
       return res.status(500).json("Object missing");
     } else {
@@ -122,27 +123,27 @@ router.put(
           phoneNumber,
         } = req.body;
         let updateUser = {};
+        console.log(updateUser);
 
         //build a event object
         if (firstName) updateUser.firstName = firstName;
         if (lastName) updateUser.lastName = lastName;
         if (userName) updateUser.userName = userName;
         if (email) updateUser.email = email;
-        if (password) updateUser.password = password;
+        if (password) {
+          let hashedPassword = await bcrypt.hash(password, 10);
+          updateUser.password = hashedPassword;
+        }
         if (birthDate) updateUser.birthDate = birthDate;
         if (sex) updateUser.sex = sex;
         if (address) updateUser.address = address;
         if (profilePicture) updateUser.profilePicture = profilePicture;
         if (phoneNumber) updateUser.phoneNumber = phoneNumber;
-
-
-
         User.findById(req.params.id)
           .then((user) => {
             if (!user) {
               return res.json({ msg: "user not find" });
             }
-            // const uniqueEmail=verifyUniqueEmail(user,);
             else {
               User.findByIdAndUpdate(
                 req.params.id,
@@ -150,7 +151,9 @@ router.put(
                 { useFindAndModify: false },
                 (err, data) => {
                   if (err) {
-                    res.json({ msg: "email id used" });}
+                    console.error(err);
+                    res.json({ msg: "email id used" });
+                  }
                   else {
                     res.json({ msg: "user updated" });
                   }
