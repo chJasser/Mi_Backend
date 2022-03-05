@@ -30,7 +30,7 @@ router.post("/register", [userValidator], async (req, res) => {
           role,
         } = req.body;
         let hashedPassword = await bcrypt.hash(password, 10);
-
+        
         let user = new User({
           firstName: firstName,
           lastName: lastName,

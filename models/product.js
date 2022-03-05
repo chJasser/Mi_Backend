@@ -3,6 +3,11 @@ const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema(
   {
+    seller:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"User",
+    },
+
     label: {
       type: String,
       required: true,
@@ -54,12 +59,12 @@ const ProductSchema = new Schema(
       enum: ["instrument", "gear"],
       default: "instrument",
     },
-    images: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "ProductImage",
-      },
-    ],
+    productImage: 
+      [
+        {type:String,
+        default:[]
+        },
+      ],
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,

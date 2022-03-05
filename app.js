@@ -28,12 +28,14 @@ require("./database/mongoDB");
  ***
  ***/
 
-require("./middleware/passport");
+//require("./middleware/passport");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+// makes the folder public 
+app.use('/uploads', express.static('uploads'));
 /*
 **
 **
@@ -119,7 +121,7 @@ app.use(passport.session());
 ***/
 //routes
 // app.use("/auth", authRouter);
-app.use("/authentication", authenticationRouter);
+app.use("/authentification", authenticationRouter);
 app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);
