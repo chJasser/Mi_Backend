@@ -5,6 +5,7 @@ const passport = require("passport");
 const { validatePassword, issueJWT, sendConfirmationEmail, verifyUser, resetPassword } = require("../lib/utils");
 const { userValidator } = require("../validators/userValidator");
 const { validationResult } = require("express-validator");
+var crypto = require("crypto");
 
 // register user 
 
@@ -78,9 +79,10 @@ router.put("/restpassword/:email", async (req, res) => {
   if (!user) {
     return res.json("user not found !");
   } else {
+    var id = crypto.randomBytes(4).toString('hex');
     User.findByIdAndUpdate(
       user._id,
-      { $set: { resetPasswordCode: "dddddddd" } },
+      { $set: { resetPasswordCode: id.toUpperCase() } },
       { useFindAndModify: false },
       (err, data) => {
         if (err) {
@@ -94,7 +96,7 @@ router.put("/restpassword/:email", async (req, res) => {
           resetPassword(
             user.lastName + " " + user.firstName,
             user.email,
-            user.confirmationCode
+            id.toUpperCase()
           );
         }
       }
@@ -344,4 +346,53 @@ router.get(
     }
   }
 );
+
+router.put("/reset", async (req, res) => {
+
+  if (!req.body.code) res.json("code is required");
+  if (req.body.password) var hashedPassword = await bcrypt.hash(req.body.password, 10);
+  User.findOne({
+    email: req.body.email,
+  })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: "User Not found." });
+      }
+      if (user.resetPasswordCode.toUpperCase() == req.body.code.toUpperCase()) {
+
+        const {
+          password,
+          confirmPassword
+        } = req.body;
+        if (password && confirmPassword) {
+          if (password == confirmPassword) {
+
+            User.findByIdAndUpdate(
+              user._id,
+              { $set: { password: hashedPassword } },
+              { useFindAndModify: false },
+              (err, data) => {
+                if (err) {
+                  console.error(err);
+                }
+                else {
+                  res.json({ msg: "user updated" });
+                }
+              }
+            );
+          } else {
+            res.json({ msg: "passwords not match" });
+          }
+        } else {
+          res.json({ msg: "password and confirmPassword are required" });
+        }
+      } else {
+        res.json({ msg: "code incorrect" });
+      }
+
+
+    })
+    .catch((e) => console.log("error", e));
+})
+
 module.exports = router;
