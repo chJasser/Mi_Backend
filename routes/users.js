@@ -75,10 +75,7 @@ router.put(
   multerUpload.single("picture"),
   (req, res) => {
     try {
-      console.log(req.user);
       if (req.user.id === req.params.id) {
-        const obj = JSON.parse(JSON.stringify(req.body));
-        console.log(req.body.firstName);
         const {
           firstName,
           lastName,
@@ -87,8 +84,13 @@ router.put(
           sex,
           phoneNumber,
           address,
+          password,
         } = req.body;
         let userFields = {};
+        let hashedPassword;
+        bcrypt.hash(password, 10).then((result) => {
+          hashedPassword = result;
+        });
         if (firstName) userFields.firstName = firstName;
         if (lastName) userFields.lastName = lastName;
         if (email) userFields.email = email;
@@ -96,6 +98,7 @@ router.put(
         if (sex) userFields.sex = sex;
         if (phoneNumber) userFields.phoneNumber = phoneNumber;
         if (address) userFields.address = address;
+        if (password) userFields.password = hashedPassword;
         if (req.file) userFields.profilePicture = req.file.path;
         console.log("im here");
         User.findByIdAndUpdate(req.user.id, {

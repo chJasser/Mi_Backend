@@ -48,8 +48,7 @@ router.post("/register", [userValidator], async (req, res) => {
           role: role,
           address: address,
           profilePicture: profilePicture,
-          phoneNumber,
-          phoneNumber,
+          phoneNumber: phoneNumber,
           userName: firstName + " " + lastName,
         });
         await user.save((err, user) => {
