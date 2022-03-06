@@ -1,5 +1,5 @@
 const { check } = require("express-validator");
-
+const User = require("../models/user");
 exports.userValidator = [
   check("firstName", "First name is required")
     .notEmpty()
@@ -9,7 +9,7 @@ exports.userValidator = [
     })
     .withMessage("first name must be between 4 characters and 15 characters"),
   check("lastName", "last Name is required")
-    .isEmpty()
+    .notEmpty()
     .isLength({
       min: 4,
       max: 15,
@@ -18,7 +18,17 @@ exports.userValidator = [
 
   check("email", "email is required")
     .isEmail()
-    .withMessage("Must be a valid email address"),
+    .withMessage("Must be a valid email address")
+    .custom(async (value) => {
+      try {
+        const user = await User.findOne({ email: value });
+        if (user) {
+          return Promise.reject("email is used");
+        }
+      } catch (error) {
+        return Promise.reject("something went bad !");
+      }
+    }),
   check("password", "password is required").notEmpty(),
   check("password")
     .isLength({

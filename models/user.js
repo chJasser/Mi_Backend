@@ -14,7 +14,11 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    
+    userName: {
+      type: String,
+      required: true,
+    },
+
     email: {
       type: String,
       required: true,
@@ -22,43 +26,33 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
     },
     birthDate: {
       type: Date,
-      required: true,
     },
     sex: {
       type: String,
       enum: ["man", "woman"],
-      required: true,
     },
 
     address: {
       type: String,
-      required: true,
     },
 
     profilePicture: {
       type: String,
-      required: true,
     },
     phoneNumber: {
       type: Number,
-      required: true,
       maxLength: 8,
     },
     role: {
+      type: String,
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
       type:String,
       default: "user",
     },
-    products: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
+   
   },
   { timestamps: true }
 );
