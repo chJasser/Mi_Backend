@@ -1,42 +1,16 @@
 var express = require("express");
 var router = express.Router();
-
 const Product = require("../models/product");
-
 var { productValidator } = require("../validators/productValidator");
-
 const User = require("../models/user");
 const { validationResult } = require("express-validator");
-const multer = require("multer");
-const passport = require("passport");
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}_${file.originalname}`);
-  },
-});
-const fileFilter = (req, file, cb) => {
-  // reject a file
-  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 1024 * 1024 * 5,
-  },
-  fileFilter: fileFilter,
-});
+const { multerUpload, auth } = require("../lib/utils");
+const { verifyTokenSeller } = require("../middleware/verifyToken");
 
 
-router.get("/",passport.authenticate("jwt", { session: false }), (req, res) => {
+
+
+router.get("/",[auth], (req, res) => {
     const { label, category, marque, price, reference, state, type } =  req.body; 
     
     
@@ -56,8 +30,6 @@ router.get("/",passport.authenticate("jwt", { session: false }), (req, res) => {
     if (reference) Productfeilds.reference = reference;
     if (state) Productfeilds.state = state;
     if (type) Productfeilds.type = type;
-    
-    //if (req.files) Productfeilds.productImage = filesarray;
   if(!Productfeilds){
       Product.find()
               .then(products => res.json(products));
@@ -69,19 +41,16 @@ router.get("/",passport.authenticate("jwt", { session: false }), (req, res) => {
     
   });
 
-
 router.post(
-  "/addproducts",
-  passport.authenticate("jwt", { session: false }),
-  upload.array("files"),
+  "/addproduct",
+  [auth, verifyTokenSeller],
+  multerUpload.array("files"),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.json({ errors: errors.array() });
     }
-
     let filesarray = [];
-
     req.files.forEach((element) => {
       filesarray.push(element.path);
     });
@@ -109,8 +78,8 @@ router.post(
 
 router.put(
   "/:id",
-  passport.authenticate("jwt", { session: false }),
-  upload.array("files"),
+  [auth, verifyTokenSeller],
+  multerUpload.array("files"),
   (req, res) => {
     let filesarray = [];
 
@@ -150,7 +119,7 @@ router.put(
 
 router.delete(
   "/:id",
-  passport.authenticate("jwt", { session: false }),
+  [auth, verifyTokenSeller],
   (req, res) => {
     Product.findById(req.params.id)
       .then((product) => {

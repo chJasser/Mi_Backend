@@ -1,40 +1,76 @@
-const jwt = require("jsonwebtoken");
+const { validatePassword } = require("../lib/utils");
 
-const verifyToken = (req, res, next) => {
-  const authHeader = req.header.token;
-  const jwtSecret = "secret"
-  if (authHeader) {
-    const token = authHeader.split(" ")[1];
-    jwt.verify(token, process.env.JWT_SEC, (err, user) => {
-      if (err) return res.status(403).json("Token is not valid!");
-      req.user = user;
-      next();
-    });
+const verifyTokenTeacher = (req, res, next) => {
+  if (req.user.role === "teacher" || req.user.role === "admin") {
+    next();
   } else {
-    return res.status(401).json("You are not authenticated!");
+    res.status(401).json({
+      success: false,
+      msg: "you're not a teacher",
+    });
   }
 };
 
-const verifyTokenAndAuthorization = (req, res, next) => {
-  verifyToken(req, res, () => {
-    if (req.user.id == req.params.id || req.user.role == "admin") {
-      next();
-    } else {
-      res.status(403).json("You are not allowed to do that!");
-    }
-  });
+const verifyTokenSeller = (req, res, next) => {
+  if (req.user.role === "seller" || req.user.role === "admin") {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      msg: "you're not a seller",
+    });
+  }
 };
 
-const verifyTokenAndAdmin = (req, res, next) => {
-  verifyToken(req, res, () => {
-    if (req.user.role == "admin") {
-      next();
-    } else {
-      res.status(403).json("You are not an admin to do that!");
-    }
-  });
+const verifyTokenStudent = (req, res, next) => {
+  if (req.user.role === "student" || req.user.role === "admin") {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      msg: "you're not a student",
+    });
+  }
+};
+const verifyTokenAdmin = (req, res, next) => {
+  if (req.user.role === "admin" || req.user.role === "super_admin") {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      msg: "you're not an admin",
+    });
+  }
+};
+const verifyTokenSuper = (req, res, next) => {
+  if (req.user.role === "super_admin") {
+    next();
+  }
 };
 
-module.exports =  {verifyToken,
-  verifyTokenAndAuthorization,
-  verifyTokenAndAdmin};
+const verifyPassword = (req, res, next) => {
+  if (req.body.oldPassword == undefined || req.body.oldPassword == "") {
+    res.status(401).json({ success: false, msg: "password is required !" });
+  } else {
+    User.findById(req.params.id)
+      .then((user) => {
+        validatePassword(req.body.oldPassword, user.password).then((match) => {
+          if (match) {
+            next();
+          } else {
+            res.status(401).json({ success: false, msg: "wrong password !" });
+          }
+        });
+      })
+      .catch((e) => console.log("error", e));
+  }
+};
+
+module.exports = {
+  verifyTokenTeacher,
+  verifyTokenSeller,
+  verifyTokenStudent,
+  verifyTokenSuper,
+  verifyTokenAdmin,
+  verifyPassword,
+};
