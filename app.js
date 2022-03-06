@@ -6,6 +6,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cookieSession = require("cookie-session");
+require("dotenv").config();
 
 /*
  **
@@ -119,7 +120,6 @@ app.use(passport.session());
 // app.use("/auth", authRouter);
 app.use("/authentication", authenticationRouter);
 app.use("/admins", adminRouter);
-
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);
 app.use("/courses", courseRouter);
@@ -134,12 +134,16 @@ app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/productImages", productImagesRouter);
 app.use("/users", usersRouter);
+app.use("/uploads", express.static("uploads"));
 /*
 **
 **
 **
 **
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/chJasser
 ***
 ***
 ***

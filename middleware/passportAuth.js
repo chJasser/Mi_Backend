@@ -20,11 +20,7 @@ const options = {
   secretOrKey: process.env.JWT_SEC,
 };
 const jasonWebTokenStrategy = new JwtStrategy(options, (jwt_payload, done) => {
-  
   User.findOne({ email: jwt_payload.email }, (err, user) => {
-
-
-    
     if (err) {
       return done(err, false);
     }
@@ -70,17 +66,15 @@ google strategy
 
  */
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:5050/authentication/google/callback",
-    },
-    function (accessToken, refreshToken, profile, done) {
-      return done(null, profile);
-    }
-  )
+const googleStrategy = new GoogleStrategy(
+  {
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:5050/authentication/google/callback",
+  },
+  function (accessToken, refreshToken, profile, done) {
+    return done(null, profile);
+  }
 );
 
 /**
@@ -119,5 +113,6 @@ passport.deserializeUser((user, done) => {
 });
 module.exports = () => {
   passport.use(facebookStrategy);
+  passport.use(googleStrategy);
   passport.use(jasonWebTokenStrategy);
 };
