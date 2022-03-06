@@ -1,6 +1,6 @@
 const dotenv = require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const { passwordIsMatch, validatePassword } = require("../lib/utils");
+const { validatePassword } = require("../lib/utils");
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.token;
