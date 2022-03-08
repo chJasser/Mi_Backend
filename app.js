@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cookieSession = require("cookie-session");
 const cors = require("cors");
+const flash = require('connect-flash');
 /**
  *
  *
@@ -117,6 +118,7 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
 /*
 **
@@ -153,9 +155,12 @@ app.use("/uploads", express.static("uploads"));
 **
 **
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 
 =======
 >>>>>>> origin/chJasser
+>>>>>>> origin/alaaBenFradj
 ***
 ***
 ***
