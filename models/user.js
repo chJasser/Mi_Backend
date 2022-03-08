@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const crypto = require('crypto');
+const crypto = require("crypto");
 // Create Schema
 
 const UserSchema = new Schema(
@@ -42,7 +42,6 @@ const UserSchema = new Schema(
     },
     profilePicture: {
       type: String,
-
     },
     phoneNumber: {
       type: Number,
@@ -60,16 +59,16 @@ const UserSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Active'],
-      default: 'Pending'
+      enum: ["Pending", "Active"],
+      default: "Pending",
     },
     confirmationCode: {
       type: String,
-      unique: true
+      unique: true,
     },
     resetPasswordCode: {
       type: String,
-      default: null
+      default: null,
     },
     products: [
       {

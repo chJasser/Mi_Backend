@@ -1,14 +1,16 @@
 var express = require("express");
 const User = require("../models/user");
+const { auth, multerUpload } = require("../lib/utils");
 const bcrypt = require("bcrypt");
 var router = express.Router();
-const { verifyTokenAndAdmin, verifyTokenAndAuthorization, verifyPassword } = require("../middleware/verifyToken");
+const {
+  verifyPassword,
+  verifyTokenAdmin,
+} = require("../middleware/verifyToken");
 const { validationResult, check } = require("express-validator");
 
-const { auth, multerUpload } = require("../lib/utils");
-
 /* GET blocked users . */
-router.get("/block", auth, async (req, res) => {
+router.get("/block", [auth, verifyTokenAdmin], async (req, res) => {
   try {
     const users = await User.find({ isBlocked: true }).exec();
     if (users.length) {
@@ -21,7 +23,7 @@ router.get("/block", auth, async (req, res) => {
   }
 });
 /* GET blocked user . */
-router.put("/block/:id", auth, async (req, res) => {
+router.put("/block/:id", [auth, verifyTokenAdmin], async (req, res) => {
   try {
     let userToBeBlocked = await User.findById(req.params.id);
 
@@ -38,7 +40,7 @@ router.put("/block/:id", auth, async (req, res) => {
   }
 });
 /* GET users . */
-router.get("/", auth, async (req, res) => {
+router.get("/", [auth, verifyTokenAdmin], async (req, res) => {
   const users = await User.find({});
   if (!users.length) return res.status(404).json("no users found");
   res.json(users);
@@ -52,10 +54,8 @@ router.get("/email/:email", (req, res) => {
   });
 });
 
-
 /* GET user by id . */
-
-router.get("/:id", auth, async (req, res) => {
+router.get("/:id", [auth, verifyTokenAdmin], async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -68,7 +68,7 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 /* delete user by id . */
-router.delete("/:id", auth, async (req, res) => {
+router.delete("/:id", [auth, verifyTokenAdmin], async (req, res) => {
   try {
     const userToBeDeleted = await User.findById(req.params.id);
     if (userToBeDeleted) {
@@ -113,7 +113,7 @@ router.put(
     }).optional(),
 
   ],
-  verifyTokenAndAuthorization,
+  auth,
   verifyPassword,
   async (req, res) => {
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
@@ -176,8 +176,8 @@ router.put(
 );
 router.put(
   "/img/:id",
-  verifyTokenAndAuthorization,
-  multerUpload.single('file'),
+  auth,
+  multerUpload.single("picture"),
   async (req, res) => {
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
       return res.status(500).json("Object missing");
@@ -216,7 +216,7 @@ router.put(
   "/updateProfile/:id",
   auth,
   multerUpload.single("picture"),
-  (req, res) => {
+  async (req, res) => {
     try {
       console.log(req.user);
       if (req.user.id === req.params.id) {
@@ -230,8 +230,10 @@ router.put(
           sex,
           phoneNumber,
           address,
+          password,
         } = req.body;
         let userFields = {};
+        let hashedPassword = await bcrypt.hash(password, 10);
         if (firstName) userFields.firstName = firstName;
         if (lastName) userFields.lastName = lastName;
         if (email) userFields.email = email;
@@ -239,6 +241,7 @@ router.put(
         if (sex) userFields.sex = sex;
         if (phoneNumber) userFields.phoneNumber = phoneNumber;
         if (address) userFields.address = address;
+        if (password) userFields.password = hashedPassword;
         if (req.file) userFields.profilePicture = req.file.path;
         console.log("im here");
         User.findByIdAndUpdate(req.user.id, {
@@ -248,7 +251,7 @@ router.put(
             res.status(200).json("updated successfully !");
           })
           .catch((error) => {
-            return res.status(500).json("error !");
+            return res.status(500).json(error.message);
           });
       } else {
         res

@@ -1,25 +1,23 @@
 var express = require("express");
 const { validationResult } = require("express-validator");
-const { verifyTokenAndAdmin, verifyToken } = require("../middleware/verifyToken");
 var router = express.Router();
 const Teacher = require("../models/teacher");
+const { auth } = require("../lib/utils");
 const { teacherValidator } = require("../validators/teacherValidator");
+const {
+  verifyTokenAdmin,
+} = require("../middleware/verifyToken");
 
-
-router.post("/register", [teacherValidator], verifyToken, async (req, res) => {
+router.post("/register", [auth, teacherValidator], async (req, res) => {
   const errors = validationResult(req).errors;
   if (errors.length !== 0) return res.status(403).json(errors);
 
-  const {
-    about,
-    degrees,
-    rib,
-  } = req.body;
+  const { about, degrees, rib } = req.body;
   const newTeacher = new Teacher({
     about,
     degrees,
     rib,
-    user: req.user._id
+    user: req.user._id,
   });
   try {
     const savedTeacher = await newTeacher.save();
@@ -29,43 +27,46 @@ router.post("/register", [teacherValidator], verifyToken, async (req, res) => {
   }
 });
 
-
-
 /* GET blocked teachers . */
-router.get("/block", verifyTokenAndAdmin, async (req, res) => {
+router.get("/block", [auth, verifyTokenAdmin], async (req, res) => {
   try {
-    await Teacher.find().populate('user').exec((err, teachers) => {
-      const teachersBlocked = teachers.filter(teacher => {
-        return teacher.user.isBlocked == true
+    await Teacher.find()
+      .populate("user")
+      .exec((err, teachers) => {
+        const teachersBlocked = teachers.filter((teacher) => {
+          return teacher.user.isBlocked == true;
+        });
+        if (teachersBlocked.length) {
+          res.json(teachersBlocked);
+        } else {
+          res.json("no blocked teachers");
+        }
       });
-      if (teachersBlocked.length) {
-        res.json(teachersBlocked);
-      } else {
-        res.json("no blocked teachers");
-      }
-    });
   } catch (error) {
     res.json(error.message);
   }
 });
 // block teacher
-router.put("/block/:status/:id", verifyTokenAndAdmin, async (req, res) => {
+router.put("/block/:status/:id", [auth, verifyTokenAdmin], async (req, res) => {
   try {
-    let teacherToBeBlocked = await Teacher.findById(req.params.id).populate("user");
-    console.log(req.params.status)
+    let teacherToBeBlocked = await Teacher.findById(req.params.id).populate(
+      "user"
+    );
+    console.log(req.params.status);
     if (!teacherToBeBlocked) {
       return res.status(404).json("there is no teacher with this ID");
     } else {
       if (teacherToBeBlocked.user.isBlocked.toString() !== req.params.status) {
-        teacherToBeBlocked = await User.findByIdAndUpdate(teacherToBeBlocked.user, {
-          isBlocked: req.params.status,
-        });
+        teacherToBeBlocked = await User.findByIdAndUpdate(
+          teacherToBeBlocked.user,
+          {
+            isBlocked: req.params.status,
+          }
+        );
         return res.json("teacher updated successfully");
-      }
-      else if (req.params.status) {
+      } else if (req.params.status) {
         return res.json("teacher already disblocked");
-      }
-      else {
+      } else {
         return res.json("teacher already blocked");
       }
     }
@@ -75,13 +76,13 @@ router.put("/block/:status/:id", verifyTokenAndAdmin, async (req, res) => {
 });
 
 /* GET teachers . */
-router.get("/", verifyTokenAndAdmin, async (req, res) => {
+router.get("/", [auth, verifyTokenAdmin], async (req, res) => {
   const teachers = await Teacher.find({});
   if (!teachers.length) return res.status(404).json("no teachers found");
   res.json(teachers);
 });
 
-router.get("/:id", verifyTokenAndAdmin, async (req, res) => {
+router.get("/:id", [auth, verifyTokenAdmin], async (req, res) => {
   try {
     const teacher = await Teacher.findById(req.params.id);
     if (!teacher) {
@@ -93,7 +94,7 @@ router.get("/:id", verifyTokenAndAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
+router.delete("/:id", [auth, verifyTokenAdmin], async (req, res) => {
   try {
     const teacherToBeDeleted = await Teacher.findById(req.params.id);
     if (teacherToBeDeleted) {

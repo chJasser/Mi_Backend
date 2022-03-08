@@ -1,3 +1,4 @@
+require("dotenv").config();
 const createError = require("http-errors");
 const express = require("express");
 const app = express();
@@ -6,7 +7,20 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cookieSession = require("cookie-session");
-
+const cors = require("cors");
+const flash = require('connect-flash');
+/**
+ *
+ *
+ * cors config
+ *
+ */
+app.use(
+  cors({
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+  })
+);
 /*
  **
  **
@@ -27,7 +41,6 @@ require("./database/mongoDB");
  ***
  ***
  ***/
-
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -105,6 +118,7 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
 /*
 **
@@ -140,6 +154,13 @@ app.use("/uploads", express.static("uploads"));
 **
 **
 **
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/chJasser
+>>>>>>> origin/alaaBenFradj
 ***
 ***
 ***

@@ -2,33 +2,32 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const passport = require("passport");
-const { validatePassword, issueJWT, sendConfirmationEmail, verifyUser, resetPassword, auth } = require("../lib/utils");
+const {
+  validatePassword,
+  issueJWT,
+  sendConfirmationEmail,
+  verifyUser,
+  resetPassword,
+  auth,
+} = require("../lib/utils");
 const { userValidator } = require("../validators/userValidator");
 const { validationResult } = require("express-validator");
 var crypto = require("crypto");
 
-// register user 
 
 
-
-const {
-  verifyTokenTeacher,
-  verifyTokenSeller,
-  verifyTokenStudent,
-  verifyTokenSuper,
-  verifyTokenAdmin,
-} = require("../middleware/verifyToken");
+// register user
 
 router.post("/register", [userValidator], async (req, res) => {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
-    return res.status(500).json("Object missing");
+    return res.status(400).json({ message: "Object missing" });
   } else {
     const errors = validationResult(req).errors;
-    if (errors.length !== 0) return res.status(500).json(errors);
+    if (errors.length !== 0) return res.status(400).json(errors);
     else {
-      let user = await User.findOne({ email: req.email });
+      let user = await User.findOne({ email: req.body.email });
       if (user) {
-        return res.json("email already used");
+        return res.status(400).json({ message: "email already used" });
       } else {
         const {
           firstName,
@@ -53,10 +52,8 @@ router.post("/register", [userValidator], async (req, res) => {
           role: role,
           address: address,
           profilePicture: profilePicture,
-          phoneNumber,
+          phoneNumber: phoneNumber,
           userName: firstName + " " + lastName,
-
-
         });
         const userToken = issueJWT(user);
         user.confirmationCode = userToken.token.substring(7);
@@ -65,7 +62,7 @@ router.post("/register", [userValidator], async (req, res) => {
             res.status(500).send({ message: err });
             return;
           }
-          res.send({
+          res.status(200).json({
             message:
               "User was registered successfully! Please check your email",
           });
@@ -81,9 +78,7 @@ router.post("/register", [userValidator], async (req, res) => {
   }
 });
 
-
-router.put("/restpassword/:email", async (req, res) => {
-
+router.put("/resetpassword/:email", async (req, res) => {
   let user = await User.findOne({ email: req.params.email });
   if (!user) {
     return res.json("user not found !");
@@ -96,11 +91,9 @@ router.put("/restpassword/:email", async (req, res) => {
       (err, data) => {
         if (err) {
           console.error(err);
-        }
-        else {
+        } else {
           res.send({
-            message:
-              "Please check your email to reset your password",
+            message: "Please check your email to reset your password",
           });
           resetPassword(
             user.lastName + " " + user.firstName,
@@ -111,36 +104,29 @@ router.put("/restpassword/:email", async (req, res) => {
       }
     );
   }
-
-
 });
 
+// verify email
 
+router.get("/email/:confirmationCode", verifyUser);
 
-// verify email 
-
-router.get("/email/:confirmationCode", verifyUser)
-
-// local login 
+// local login (email and password)
 router.post("/login", (req, res) => {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
-    return res.status(500).json("email and password are missing");
+    return res.status(500).json({ success: false, message: "email and password are missing" });
   }
   if (!req.body.password) {
-    return res.status(500).json("password is missing");
+    return res.status(500).json({ success: false, message: "password is missing" });
   }
   User.findOne({ email: req.body.email })
     .then((user) => {
-
       if (!user) {
-        return res.status(404).json("you need to register first");
-      }
-      else if (user.status != "Active") {
+        return res.status(404).json({ success: false, message: "you need to register first" });
+      } else if (user.status != "Active") {
         return res.status(401).send({
-          message: "Pending Account. Please Verify Your Email!",
+          success: false, message: "Pending Account. Please Verify Your Email!",
         });
-      }
-      else {
+      } else {
         validatePassword(req.body.password, user.password).then((match) => {
           if (match) {
             const userToken = issueJWT(user);
@@ -150,17 +136,17 @@ router.post("/login", (req, res) => {
               expiresIn: userToken.expires,
             });
           } else {
-            res.status(401).json({ success: false, msg: "wrong password !" });
+            res.status(401).json({ success: false, message: "wrong password !" });
           }
         });
       }
     })
     .catch((err) => {
-      res.status(500).json({ err: err.message });
+      res.status(500).json({ success: false, message: err.message });
     });
 });
 
-router.get("/protected", [auth, verifyTokenStudent], (req, res, next) => {
+router.get("/protected", [auth], (req, res, next) => {
   console.log(req.user);
 
   res.status(200).json({
