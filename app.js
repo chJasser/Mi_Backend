@@ -1,3 +1,4 @@
+require("dotenv").config();
 const createError = require("http-errors");
 const express = require("express");
 const app = express();
@@ -6,8 +7,20 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cookieSession = require("cookie-session");
-require("dotenv").config();
-
+const cors = require("cors");
+const flash = require('connect-flash');
+/**
+ *
+ *
+ * cors config
+ *
+ */
+app.use(
+  cors({
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+  })
+);
 /*
  **
  **
@@ -39,7 +52,6 @@ app.use(express.static(path.join(__dirname, "public")));
 **
 **
 **
-
 ***
 ***
 ***
@@ -68,7 +80,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -78,7 +89,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -89,7 +99,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -105,13 +114,13 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
 /*
 **
 **
 **
 **
-
 ***
 ***
 ***
@@ -133,7 +142,6 @@ app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/productImages", productImagesRouter);
-
 app.use("/users", usersRouter);
 app.use("/uploads", express.static("uploads"));
 /*
@@ -141,11 +149,16 @@ app.use("/uploads", express.static("uploads"));
 **
 **
 **
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> origin/chJasser
+>>>>>>> origin/alaaBenFradj
 ***
 ***
 ***
 ***/
-
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
 });
