@@ -239,7 +239,7 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
+  passport.authenticate("google", { failureRedirect: "/login",successRedirect:"http://localhost:3000/archive/the-demo-archive-slug" }),
   (req, res) => {
     const email = req.user.emails[0].value;
 
