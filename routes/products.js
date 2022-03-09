@@ -13,16 +13,13 @@ const { verifyTokenSeller } = require("../middleware/verifyToken");
 router.get("/",[auth], (req, res) => {
     const { label, category, marque, price, reference, state, type } =  req.body; 
     
-    
-    /*if (req.user.role == "seller") {
-        Product.find({
-          seller: req.user._id,
-        })
-          .then((products) => res.json(products))
-          .catch((err) => console.log(err.message));
-      }*/
     let Productfeilds = {};
-    if(req.user.role)Productfeilds.seller=req.user._id ;
+    if (req.user.role == "seller") 
+      Productfeilds.seller=req.user._id ;
+        
+      Productfeilds.user=req.user._id ;
+    
+   // if(req.user.role)Productfeilds.seller=req.user._id ;
     if (label) Productfeilds.label = label;
     if (category) Productfeilds.category = category;
    if (marque) Productfeilds.marque = marque;
@@ -35,7 +32,7 @@ router.get("/",[auth], (req, res) => {
               .then(products => res.json(products));
     } else{ 
         Product.find(Productfeilds, (err, result) => {
-        res.json(result);
+        res.status(201).json(result);
       })}
      
     
