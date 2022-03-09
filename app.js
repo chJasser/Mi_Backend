@@ -149,12 +149,9 @@ app.use("/uploads", express.static("uploads"));
 **
 **
 **
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> origin/chJasser
->>>>>>> origin/alaaBenFradj
+
+
+
 ***
 ***
 ***

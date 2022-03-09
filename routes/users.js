@@ -8,7 +8,6 @@ const {
   verifyTokenAdmin,
 } = require("../middleware/verifyToken");
 const { validationResult, check } = require("express-validator");
-const { upload } = require("../lib/utils");
 
 /* GET blocked users . */
 router.get("/block", [auth, verifyTokenAdmin], async (req, res) => {
@@ -84,42 +83,145 @@ router.delete("/:id", [auth, verifyTokenAdmin], async (req, res) => {
     return res.json(error.message);
   }
 });
-const validator = [
-  check(
-    "firstName",
-    "first name must be between 4 characters and 15 characters"
-  )
-    .isLength({ min: 4, max: 15 })
-    .optional(),
-  check("lastName", "last name must be between 4 characters and 15 characters")
-    .isLength({ min: 4, max: 15 })
-    .optional(),
-  check("email", "email is required")
-    .isEmail()
-    .withMessage("Must be a valid email address")
-    .optional(),
-  check("password")
-    .isLength({
-      min: 6,
-    })
-    .withMessage("Password must contain at least 6 characters")
-    .matches(/\d/)
-    .withMessage("password must contain a number")
-    .optional(),
 
-  check("phoneNumber", "phone number is required")
-    .isLength({
+
+//update personal informations 
+
+router.put(
+  "/:id",
+  [
+    check("firstName", "first name must be between 4 characters and 15 characters")
+      .isLength({ min: 4, max: 15 })
+      .optional(),
+    check("lastName", "last name must be between 4 characters and 15 characters")
+      .isLength({ min: 4, max: 15 })
+      .optional(),
+    check("email", "email is required")
+      .isEmail()
+      .withMessage("Must be a valid email address")
+      .optional(),
+    check("password")
+      .isLength({
+        min: 6,
+      })
+      .withMessage("Password must contain at least 6 characters")
+      .matches(/\d/)
+      .withMessage("password must contain a number").optional(),
+
+    check("phoneNumber", "phone number is required").isLength({
       min: 8,
-    })
-    .optional(),
-];
+    }).optional(),
+
+  ],
+  auth,
+  verifyPassword,
+  async (req, res) => {
+    if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+      return res.status(500).json("Object missing");
+    } else {
+      const errors = validationResult(req).errors;
+      if (errors.length !== 0) return res.status(500).json(errors);
+      else {
+        const {
+          firstName,
+          lastName,
+          userName,
+          email,
+          password,
+          birthDate,
+          sex,
+          address,
+          phoneNumber,
+        } = req.body;
+        let updateUser = {};
+        if (firstName) updateUser.firstName = firstName;
+        if (lastName) updateUser.lastName = lastName;
+        if (userName) updateUser.userName = userName;
+        if (email) updateUser.email = email;
+        if (password) {
+          let hashedPassword = await bcrypt.hash(password, 10);
+          updateUser.password = hashedPassword;
+        }
+        if (birthDate) updateUser.birthDate = birthDate;
+        if (sex) updateUser.sex = sex;
+        if (address) updateUser.address = address;
+        if (phoneNumber) updateUser.phoneNumber = phoneNumber;
+
+        User.findById(req.params.id)
+          .then((user) => {
+            if (!user) {
+              return res.json({ msg: "user not find" });
+            }
+            else {
+              User.findByIdAndUpdate(
+                req.params.id,
+                { $set: updateUser },
+                { useFindAndModify: false },
+                (err, data) => {
+                  if (err) {
+                    console.error(err);
+                    res.json({ msg: "email id used" });
+                  }
+                  else {
+                    res.json({ msg: "user updated" });
+                  }
+                }
+              );
+            }
+          })
+          .catch((err) => console.log(err.message));
+      }
+    }
+  }
+);
+router.put(
+  "/img/:id",
+  auth,
+  multerUpload.single("picture"),
+  async (req, res) => {
+    if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+      return res.status(500).json("Object missing");
+    } else {
+      User.findById(req.params.id)
+        .then((user) => {
+          if (!user) {
+            return res.json({ msg: "user not find" });
+          }
+          else {
+            User.findByIdAndUpdate(
+              req.params.id,
+              { $set: { profilePicture: JSON.stringify(req.file.filename) } },
+              { useFindAndModify: false },
+              (err, data) => {
+                if (err) {
+                  console.error(err);
+                }
+                else {
+                  res.json({ msg: "user updated" });
+                }
+              }
+            );
+          }
+        })
+        .catch((err) => console.log(err.message));
+
+    }
+  }
+);
+
+
+
+
 router.put(
   "/updateProfile/:id",
-  [auth, validator],
+  auth,
   multerUpload.single("picture"),
   async (req, res) => {
     try {
+      console.log(req.user);
       if (req.user.id === req.params.id) {
+        const obj = JSON.parse(JSON.stringify(req.body));
+        console.log(req.body.firstName);
         const {
           firstName,
           lastName,

@@ -5,12 +5,7 @@ const Teacher = require("../models/teacher");
 const { auth } = require("../lib/utils");
 const { teacherValidator } = require("../validators/teacherValidator");
 const {
-  verifyTokenTeacher,
-  verifyTokenSeller,
-  verifyTokenStudent,
-  verifyTokenSuper,
   verifyTokenAdmin,
-  verifyPassword,
 } = require("../middleware/verifyToken");
 
 router.post("/register", [auth, teacherValidator], async (req, res) => {
