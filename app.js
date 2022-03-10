@@ -1,3 +1,4 @@
+require("dotenv").config();
 const createError = require("http-errors");
 const express = require("express");
 const app = express();
@@ -6,7 +7,20 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cookieSession = require("cookie-session");
-
+const cors = require("cors");
+const flash = require('connect-flash');
+/**
+ *
+ *
+ * cors config
+ *
+ */
+app.use(
+  cors({
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+  })
+);
 /*
  **
  **
@@ -28,7 +42,6 @@ require("./database/mongoDB");
  ***
  ***/
 
-//require("./middleware/passport");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -41,13 +54,12 @@ app.use('/uploads', express.static('uploads'));
 **
 **
 **
-
 ***
 ***
 ***
 ***/
 // routes
-const authRouter = require("./routes/auth");
+
 const authenticationRouter = require("./routes/authentication");
 const adminRouter = require("./routes/admins");
 const chapterRouter = require("./routes/chapters");
@@ -70,7 +82,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -80,7 +91,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -91,7 +101,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -107,14 +116,13 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.use(flash());
 
 /*
 **
 **
 **
 **
-
 ***
 ***
 ***
@@ -137,11 +145,14 @@ app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/productImages", productImagesRouter);
 app.use("/users", usersRouter);
+app.use("/uploads", express.static("uploads"));
 /*
 **
 **
 **
 **
+
+
 
 ***
 ***
@@ -150,6 +161,7 @@ app.use("/users", usersRouter);
 app.use("/", (req, res) => {
   res.send("welcome to MI universe!");
 });
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

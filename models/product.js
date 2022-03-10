@@ -3,11 +3,11 @@ const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema(
   {
-    seller:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"User",
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-
+    description: String,
     label: {
       type: String,
       required: true,

@@ -6,10 +6,12 @@ const RateCourseSchema = new Schema(
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
+      required: true,
     },
 
     number: {
       type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

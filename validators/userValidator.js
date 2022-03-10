@@ -18,17 +18,17 @@ exports.userValidator = [
 
   check("email", "email is required")
     .isEmail()
-    .withMessage("Must be a valid email address")
-    .custom(async (value) => {
-      try {
-        const user = await User.findOne({ email: value });
-        if (user) {
-          return Promise.reject("email is used");
-        }
-      } catch (error) {
-        return Promise.reject("something went bad !");
-      }
-    }),
+    .withMessage("Must be a valid email address"),
+  // .custom(async (value) => {
+  //   try {
+  //     const user = await User.findOne({ email: value });
+  //     if (user) {
+  //       return Promise.reject("email is used");
+  //     }
+  //   } catch (error) {
+  //     return Promise.reject("something went bad !");
+  //   }
+  // }),
   check("password", "password is required").notEmpty(),
   check("password")
     .isLength({
@@ -37,8 +37,12 @@ exports.userValidator = [
     .withMessage("Password must contain at least 6 characters")
     .matches(/\d/)
     .withMessage("password must contain a number"),
+  check("password2", "confirm password is required").notEmpty(),
+  check('password2').custom((value, { req }) => {
+    //custom validator
+    if (value !== req.body.password) {
+      throw new Error('Passwords doesn\'t match');
+    }
 
-  check("phoneNumber", "phone number is required").notEmpty().isLength({
-    min: 8,
-  }),
+  })
 ];

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-
+const crypto = require("crypto");
 // Create Schema
 
 const UserSchema = new Schema(
@@ -16,12 +16,15 @@ const UserSchema = new Schema(
     userName: {
       type: String,
       required: true,
+      trim: true,
     },
 
     email: {
       type: String,
+      trim: true,
       required: true,
       unique: true,
+      lowercase: true,
     },
     password: {
       type: String,
@@ -37,7 +40,6 @@ const UserSchema = new Schema(
     address: {
       type: String,
     },
-
     profilePicture: {
       type: String,
     },
@@ -47,13 +49,33 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      //enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
+      enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
+
       default: "user",
     },
     isBlocked: {
       type: Boolean,
       default: false,
     },
+    status: {
+      type: String,
+      enum: ["Pending", "Active"],
+      default: "Active",
+    },
+    confirmationCode: {
+      type: String,
+      unique: true,
+    },
+    resetPasswordCode: {
+      type: String,
+      default: null,
+    },
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true }
 );
