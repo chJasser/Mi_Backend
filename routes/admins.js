@@ -1,12 +1,8 @@
 var express = require("express");
 var router = express.Router();
-
+const { auth } = require("../lib/utils");
+const { verifyTokenAdmin } = require("../middleware/verifyToken");
 const Admin = require("../models/admin");
-router.get("/", (req, res) => {
-  console.log("getting admins");
-  Admin.find((err, admins) => {
-    console.log(admins);
-  });
-});
+router.get("/", [auth], (req, res) => {});
 
 module.exports = router;
