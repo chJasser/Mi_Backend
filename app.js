@@ -52,7 +52,6 @@ app.use(express.static(path.join(__dirname, "public")));
 **
 **
 **
-
 ***
 ***
 ***
@@ -81,7 +80,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -91,7 +89,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -102,7 +99,6 @@ const usersRouter = require("./routes/users");
 **
 **
 **
-
 ***
 ***
 ***
@@ -125,7 +121,6 @@ app.use(flash());
 **
 **
 **
-
 ***
 ***
 ***
@@ -154,13 +149,9 @@ app.use("/uploads", express.static("uploads"));
 **
 **
 **
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/chJasser
->>>>>>> origin/alaaBenFradj
+
+
 ***
 ***
 ***

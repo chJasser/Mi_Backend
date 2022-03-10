@@ -1,22 +1,42 @@
 var express = require("express");
 var router = express.Router();
-
-var { productValidator } = require("../validators/productValidator");
 const Product = require("../models/product");
+var { productValidator } = require("../validators/productValidator");
+const User = require("../models/user");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
 
-router.get("/", [auth], (req, res) => {
-  if (req.user_role == "seller") {
-    seller = req._id;
-  }
-  Product.find({
-    seller: seller,
-  })
-    .then((products) => res.json(products))
-    .catch((err) => console.log(err.message));
-});
+
+
+
+router.get("/",[auth], (req, res) => {
+    const { label, category, marque, price, reference, state, type } =  req.body; 
+    
+    let Productfeilds = {};
+    if (req.user.role == "seller") 
+      Productfeilds.seller=req.user._id ;
+        
+      Productfeilds.user=req.user._id ;
+    
+   // if(req.user.role)Productfeilds.seller=req.user._id ;
+    if (label) Productfeilds.label = label;
+    if (category) Productfeilds.category = category;
+   if (marque) Productfeilds.marque = marque;
+    if (price) Productfeilds.price = price;
+    if (reference) Productfeilds.reference = reference;
+    if (state) Productfeilds.state = state;
+    if (type) Productfeilds.type = type;
+  if(!Productfeilds){
+      Product.find()
+              .then(products => res.json(products));
+    } else{ 
+        Product.find(Productfeilds, (err, result) => {
+        res.status(201).json(result);
+      })}
+     
+    
+  });
 
 router.post(
   "/addproduct",
@@ -40,7 +60,7 @@ router.post(
       reference: req.body.reference,
       state: req.body.state,
       type: req.body.type,
-      seller: req._id,
+      seller: req.user._id,
       productImage: filesarray,
     });
 
@@ -53,52 +73,65 @@ router.post(
   }
 );
 
-router.put("/:id", [auth, verifyTokenSeller], (req, res) => {
-  const { label, category, marque, price, reference, state, type, images } =
-    req.body;
-  let Productfeilds = {};
-  if (label) Productfeilds.label = label;
-  if (category) Productfeilds.category = category;
-  if (marque) Productfeilds.marque = marque;
-  if (price) Productfeilds.price = price;
-  if (reference) Productfeilds.reference = reference;
-  if (state) Productfeilds.state = state;
-  if (type) Productfeilds.type = type;
-  if (images) Productfeilds.images = images;
+router.put(
+  "/:id",
+  [auth, verifyTokenSeller],
+  multerUpload.array("files"),
+  (req, res) => {
+    let filesarray = [];
 
-  Product.findById(req.params.id)
-    .then((product) => {
-      if (!product) {
-        return res.json({ msg: "product not found" });
-      } else if (product.user.toString() !== req.user.id) {
-        res.json({ msg: "Not authorized" });
-      } else {
-        Product.findByIdAndUpdate(
-          req.params.id,
-          { $set: Productfeilds },
-          (err, data) => {
-            res.json(data);
-          }
-        );
-      }
-    })
-    .catch((err) => console.log(err.message));
-});
+    req.files.forEach((element) => {
+      filesarray.push(element.path);
+    });
+    const { label, category, marque, price, reference, state, type } = req.body;
+    let Productfeilds = {};
+    if (label) Productfeilds.label = label;
+    if (category) Productfeilds.category = category;
+    if (marque) Productfeilds.marque = marque;
+    if (price) Productfeilds.price = price;
+    if (reference) Productfeilds.reference = reference;
+    if (state) Productfeilds.state = state;
+    if (type) Productfeilds.type = type;
+    if (req.files) Productfeilds.productImage = filesarray;
 
-router.delete("/:id", [auth, verifyTokenSeller], (req, res) => {
-  Product.findById(req.params.id)
-    .then((product) => {
-      if (!product) {
-        return res.json({ msg: "product not found" });
-      } else if (product.user.toString() !== req.user.id) {
-        res.json({ msg: "Noth authorized" });
-      } else {
-        Product.findByIdAndDelete(req.params.id, (err, data) => {
-          res.json({ msg: "Product Deleted!" });
-        });
-      }
-    })
-    .catch((err) => console.log(err.message));
-});
+    Product.findById(req.params.id)
+      .then((product) => {
+        if (!product) {
+          return res.json({ msg: "product not found" });
+        } else if (product.seller.toString() != req.user._id) {
+          res.json({ msg: "Noth authorized" });
+        } else {
+          Product.findByIdAndUpdate(
+            req.params.id,
+            { $set: Productfeilds },
+            (err, data) => {
+              res.json(data);
+            }
+          );
+        }
+      })
+      .catch((err) => console.log(err.message));
+  }
+);
+
+router.delete(
+  "/:id",
+  [auth, verifyTokenSeller],
+  (req, res) => {
+    Product.findById(req.params.id)
+      .then((product) => {
+        if (!product) {
+          return res.json({ msg: "product not found" });
+        } else if (product.seller.toString() != req.user._id) {
+          res.json({ msg: "Noth authorized" });
+        } else {
+          Product.findByIdAndDelete(req.params.id, (err, data) => {
+            res.json({ msg: "Product Deleted!" });
+          });
+        }
+      })
+      .catch((err) => console.log(err.message));
+  }
+);
 
 module.exports = router;
