@@ -50,7 +50,7 @@ const UserSchema = new Schema(
     role: {
       type: String,
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
-      type: String,
+
       default: "user",
     },
     isBlocked: {

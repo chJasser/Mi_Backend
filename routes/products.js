@@ -6,37 +6,78 @@ const User = require("../models/user");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
+router.get("/filter", (req, res) => {
+  var { label, category, marque, minPrice, maxPrice, reference, state, type } =
+    req.body;
 
+  let Productfeilds = {};
+  let minP = 0;
+  let maxP = 100000;
+  if (maxPrice) maxP = maxPrice;
+  if (minPrice) minP = minPrice;
+  if (label) Productfeilds.label = label;
+  if (category) Productfeilds.category = category;
+  if (marque) Productfeilds.marque = marque;
+  if (reference) Productfeilds.reference = reference;
+  if (state) Productfeilds.state = state;
+  if (type) Productfeilds.type = type;
 
+  if (!Productfeilds) {
+    Product.find().then((products) => res.json(products));
+  } else {
+    Product.find(Productfeilds)
+      .where("price")
+      .gte(minP)
+      .lte(maxP)
+      .then((result) => {
+        res.status(200).json({ products: result });
+      });
+  }
+});
+/**
+ *
+ *
+ *
+ *
+ */
 
+router.get("/", [auth], (req, res) => {
+  const {
+    label,
+    category,
+    marque,
+    minPrice,
+    maxPrice,
+    reference,
+    state,
+    type,
+  } = req.body;
+  if (req.user.role == "seller") Productfeilds.seller = req.user._id;
+  Productfeilds.user = req.user._id;
+  let Productfeilds = {};
+  let minP = 0;
+  let maxP = 100000;
+  if (maxPrice) maxP = maxPrice;
+  if (minPrice) minP = minPrice;
+  if (label) Productfeilds.label = label;
+  if (category) Productfeilds.category = category;
+  if (marque) Productfeilds.marque = marque;
+  if (reference) Productfeilds.reference = reference;
+  if (state) Productfeilds.state = state;
+  if (type) Productfeilds.type = type;
 
-router.get("/",[auth], (req, res) => {
-    const { label, category, marque, price, reference, state, type } =  req.body; 
-    
-    let Productfeilds = {};
-    if (req.user.role == "seller") 
-      Productfeilds.seller=req.user._id ;
-        
-      Productfeilds.user=req.user._id ;
-    
-   // if(req.user.role)Productfeilds.seller=req.user._id ;
-    if (label) Productfeilds.label = label;
-    if (category) Productfeilds.category = category;
-   if (marque) Productfeilds.marque = marque;
-    if (price) Productfeilds.price = price;
-    if (reference) Productfeilds.reference = reference;
-    if (state) Productfeilds.state = state;
-    if (type) Productfeilds.type = type;
-  if(!Productfeilds){
-      Product.find()
-              .then(products => res.json(products));
-    } else{ 
-        Product.find(Productfeilds, (err, result) => {
-        res.status(201).json(result);
-      })}
-     
-    
-  });
+  if (!Productfeilds) {
+    Product.find().then((products) => res.json(products));
+  } else {
+    Product.find(Productfeilds)
+      .where("price")
+      .gte(minP)
+      .lte(maxP)
+      .then((result) => {
+        res.status(200).json({ products: result });
+      });
+  }
+});
 
 router.post(
   "/addproduct",
@@ -114,24 +155,20 @@ router.put(
   }
 );
 
-router.delete(
-  "/:id",
-  [auth, verifyTokenSeller],
-  (req, res) => {
-    Product.findById(req.params.id)
-      .then((product) => {
-        if (!product) {
-          return res.json({ msg: "product not found" });
-        } else if (product.seller.toString() != req.user._id) {
-          res.json({ msg: "Noth authorized" });
-        } else {
-          Product.findByIdAndDelete(req.params.id, (err, data) => {
-            res.json({ msg: "Product Deleted!" });
-          });
-        }
-      })
-      .catch((err) => console.log(err.message));
-  }
-);
+router.delete("/:id", [auth, verifyTokenSeller], (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        return res.json({ msg: "product not found" });
+      } else if (product.seller.toString() != req.user._id) {
+        res.json({ msg: "Noth authorized" });
+      } else {
+        Product.findByIdAndDelete(req.params.id, (err, data) => {
+          res.json({ msg: "Product Deleted!" });
+        });
+      }
+    })
+    .catch((err) => console.log(err.message));
+});
 
 module.exports = router;

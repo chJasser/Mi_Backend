@@ -1,6 +1,10 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
+const Teacher = require("../models/teacher");
+const Student = require("../models/student");
+const Seller = require("../models/seller");
+const Admin = require("../models/admin");
 const passport = require("passport");
 const {
   validatePassword,
@@ -14,8 +18,19 @@ const { userValidator } = require("../validators/userValidator");
 const { validationResult } = require("express-validator");
 var crypto = require("crypto");
 
+/**
+ *
+ *
+ *
+ *
+ */
+const FRONT_URL = "http://localhost:3000/";
 
-
+/**
+ *
+ *
+ *
+ */
 // register user
 
 router.post("/register", [userValidator], async (req, res) => {
@@ -41,6 +56,7 @@ router.post("/register", [userValidator], async (req, res) => {
           address,
           role,
         } = req.body;
+
         let hashedPassword = await bcrypt.hash(password, 10);
         let user = new User({
           firstName: firstName,
@@ -61,11 +77,12 @@ router.post("/register", [userValidator], async (req, res) => {
           if (err) {
             res.status(500).send({ message: err });
             return;
+          } else {
+            res.status(200).json({
+              message:
+                "User was registered successfully! Please check your email",
+            });
           }
-          res.status(200).json({
-            message:
-              "User was registered successfully! Please check your email",
-          });
 
           sendConfirmationEmail(
             lastName + " " + firstName,
@@ -78,12 +95,90 @@ router.post("/register", [userValidator], async (req, res) => {
   }
 });
 
+router.post("/register_account", [auth], (req, res) => {
+  const role = req.user.role;
+  if (role == "user")
+    res.status(200).json({
+      user: req.user,
+    });
+  if (role == "teacher") {
+    const { about, degrees, rib } = req.body;
+    if (!about || !degrees || !rib)
+      res.json({
+        success: false,
+        message:
+          "you need to specify your About section and some of your degrees and your bank account rib",
+      });
+    let teacher = new Teacher({
+      user: req.user.id,
+      about: about,
+      degrees: degrees,
+      rib: rib,
+    });
+    teacher
+      .save()
+      .then((teacher) => {
+        res.status(200).json({
+          teacher: teacher,
+        });
+      })
+      .catch((err) =>
+        res.status(500).json({ success: false, message: err.message })
+      );
+  }
+  if (role == "student") {
+    const { about, interestedIn } = req.body;
+    if (!about || !interestedIn)
+      res.json({
+        success: false,
+        message:
+          "you need to specify your About section and some of your interests",
+      });
+    let student = new Student({
+      user: req.user.id,
+      about: about,
+      interestedIn: interestedIn,
+    });
+    student
+      .save()
+      .then((student) => {
+        res.status(200).json({
+          student: student,
+        });
+      })
+      .catch((err) =>
+        res.status(500).json({ success: false, message: "error !" })
+      );
+  }
+  if (role == "seller") {
+    const { rib } = req.body;
+    if (!rib)
+      res.json({
+        success: false,
+        message: "you need to specify your bank account rib",
+      });
+    let seller = new Seller({
+      user: req.user.id,
+      rib: rib,
+    });
+    seller
+      .save()
+      .then((seller) => {
+        res.status(200).json({
+          seller: seller,
+        });
+      })
+      .catch((err) =>
+        res.status(500).json({ success: false, message: "error !" })
+      );
+  }
+});
 router.put("/resetpassword/:email", async (req, res) => {
   let user = await User.findOne({ email: req.params.email });
   if (!user) {
     return res.json("user not found !");
   } else {
-    var id = crypto.randomBytes(4).toString('hex');
+    var id = crypto.randomBytes(4).toString("hex");
     User.findByIdAndUpdate(
       user._id,
       { $set: { resetPasswordCode: id.toUpperCase() } },
@@ -110,21 +205,37 @@ router.put("/resetpassword/:email", async (req, res) => {
 
 router.get("/email/:confirmationCode", verifyUser);
 
+/**
+ *
+ *
+ *
+ * login
+ *
+ *
+ */
+
 // local login (email and password)
 router.post("/login", (req, res) => {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
-    return res.status(500).json({ success: false, message: "email and password are missing" });
+    return res
+      .status(500)
+      .json({ success: false, message: "email and password are missing" });
   }
   if (!req.body.password) {
-    return res.status(500).json({ success: false, message: "password is missing" });
+    return res
+      .status(500)
+      .json({ success: false, message: "password is missing" });
   }
   User.findOne({ email: req.body.email })
     .then((user) => {
       if (!user) {
-        return res.status(404).json({ success: false, message: "you need to register first" });
+        return res
+          .status(404)
+          .json({ success: false, message: "you need to register first" });
       } else if (user.status != "Active") {
         return res.status(401).send({
-          success: false, message: "Pending Account. Please Verify Your Email!",
+          success: false,
+          message: "Pending Account. Please Verify Your Email!",
         });
       } else {
         validatePassword(req.body.password, user.password).then((match) => {
@@ -136,7 +247,9 @@ router.post("/login", (req, res) => {
               expiresIn: userToken.expires,
             });
           } else {
-            res.status(401).json({ success: false, message: "wrong password !" });
+            res
+              .status(401)
+              .json({ success: false, message: "wrong password !" });
           }
         });
       }
@@ -154,6 +267,17 @@ router.get("/protected", [auth], (req, res, next) => {
     msg: "You are successfully authenticated to this route!",
   });
 });
+router.get("/login/failed", (req, res) => {
+  res.status(401).json({
+    success: false,
+    message: "failure",
+  });
+});
+router.get("/logout", (req, res) => {
+  req.logout();
+  res.redirect(CLIENT_URL);
+});
+
 /**
  *
  *
@@ -175,7 +299,8 @@ router.get("/facebook", passport.authorize("facebook", { scope: ["email"] }));
 router.get(
   "/facebook/callback",
   passport.authenticate("facebook", {
-    failureRedirect: "/login",
+    successRedirect: FRONT_URL,
+    failureRedirect: "/login/failed",
   }),
   (req, res) => {
     const email = req.user.emails[0].value;
@@ -239,7 +364,10 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
+  passport.authenticate("google", {
+    successRedirect: FRONT_URL,
+    failureRedirect: "/login/failed",
+  }),
   (req, res) => {
     const email = req.user.emails[0].value;
 
@@ -296,7 +424,10 @@ router.get(
 
 router.get(
   "/github/callback",
-  passport.authenticate("github", { failureRedirect: "/login" }),
+  passport.authenticate("github", {
+    successRedirect: FRONT_URL,
+    failureRedirect: "/login/failed",
+  }),
   function (req, res) {
     const email = req.user.emails[0].value;
     try {
@@ -310,11 +441,9 @@ router.get(
             expiresIn: accessToken.expires,
           });
         } else {
-          // const { familyName, givenName } = req.user.name;
           let newUser = new User({
             userName: req.user.username,
-            // firstName: givenName,
-            // lastName: familyName,
+
             email: email,
           });
           newUser.save().then((done, err) => {
@@ -341,9 +470,9 @@ router.get(
 );
 
 router.put("/reset", async (req, res) => {
-
   if (!req.body.code) res.json("code is required");
-  if (req.body.password) var hashedPassword = await bcrypt.hash(req.body.password, 10);
+  if (req.body.password)
+    var hashedPassword = await bcrypt.hash(req.body.password, 10);
   User.findOne({
     email: req.body.email,
   })
@@ -352,14 +481,9 @@ router.put("/reset", async (req, res) => {
         return res.status(404).send({ message: "User Not found." });
       }
       if (user.resetPasswordCode.toUpperCase() == req.body.code.toUpperCase()) {
-
-        const {
-          password,
-          confirmPassword
-        } = req.body;
+        const { password, confirmPassword } = req.body;
         if (password && confirmPassword) {
           if (password == confirmPassword) {
-
             User.findByIdAndUpdate(
               user._id,
               { $set: { password: hashedPassword } },
@@ -367,8 +491,7 @@ router.put("/reset", async (req, res) => {
               (err, data) => {
                 if (err) {
                   console.error(err);
-                }
-                else {
+                } else {
                   res.json({ msg: "user updated" });
                 }
               }
@@ -382,10 +505,8 @@ router.put("/reset", async (req, res) => {
       } else {
         res.json({ msg: "code incorrect" });
       }
-
-
     })
     .catch((e) => console.log("error", e));
-})
+});
 
 module.exports = router;
