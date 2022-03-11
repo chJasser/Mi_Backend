@@ -55,7 +55,7 @@ router.get("/email/:email", (req, res) => {
 });
 
 /* GET user by id . */
-router.get("/:id", [auth, verifyTokenAdmin], async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -84,16 +84,21 @@ router.delete("/:id", [auth, verifyTokenAdmin], async (req, res) => {
   }
 });
 
-
-//update personal informations 
+//update personal informations
 
 router.put(
   "/:id",
   [
-    check("firstName", "first name must be between 4 characters and 15 characters")
+    check(
+      "firstName",
+      "first name must be between 4 characters and 15 characters"
+    )
       .isLength({ min: 4, max: 15 })
       .optional(),
-    check("lastName", "last name must be between 4 characters and 15 characters")
+    check(
+      "lastName",
+      "last name must be between 4 characters and 15 characters"
+    )
       .isLength({ min: 4, max: 15 })
       .optional(),
     check("email", "email is required")
@@ -106,12 +111,14 @@ router.put(
       })
       .withMessage("Password must contain at least 6 characters")
       .matches(/\d/)
-      .withMessage("password must contain a number").optional(),
+      .withMessage("password must contain a number")
+      .optional(),
 
-    check("phoneNumber", "phone number is required").isLength({
-      min: 8,
-    }).optional(),
-
+    check("phoneNumber", "phone number is required")
+      .isLength({
+        min: 8,
+      })
+      .optional(),
   ],
   auth,
   verifyPassword,
@@ -151,8 +158,7 @@ router.put(
           .then((user) => {
             if (!user) {
               return res.json({ msg: "user not find" });
-            }
-            else {
+            } else {
               User.findByIdAndUpdate(
                 req.params.id,
                 { $set: updateUser },
@@ -161,8 +167,7 @@ router.put(
                   if (err) {
                     console.error(err);
                     res.json({ msg: "email id used" });
-                  }
-                  else {
+                  } else {
                     res.json({ msg: "user updated" });
                   }
                 }
@@ -186,8 +191,7 @@ router.put(
         .then((user) => {
           if (!user) {
             return res.json({ msg: "user not find" });
-          }
-          else {
+          } else {
             User.findByIdAndUpdate(
               req.params.id,
               { $set: { profilePicture: JSON.stringify(req.file.filename) } },
@@ -195,8 +199,7 @@ router.put(
               (err, data) => {
                 if (err) {
                   console.error(err);
-                }
-                else {
+                } else {
                   res.json({ msg: "user updated" });
                 }
               }
@@ -204,13 +207,9 @@ router.put(
           }
         })
         .catch((err) => console.log(err.message));
-
     }
   }
 );
-
-
-
 
 router.put(
   "/updateProfile/:id",
