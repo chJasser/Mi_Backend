@@ -79,33 +79,7 @@ router.post("/register", [userValidator], async (req, res) => {
   }
 });
 
-router.put("/resetpassword/:email", async (req, res) => {
-  let user = await User.findOne({ email: req.params.email });
-  if (!user) {
-    return res.json("user not found !");
-  } else {
-    var id = crypto.randomBytes(4).toString('hex');
-    User.findByIdAndUpdate(
-      user._id,
-      { $set: { resetPasswordCode: id.toUpperCase() } },
-      { useFindAndModify: false },
-      (err, data) => {
-        if (err) {
-          console.error(err);
-        } else {
-          res.send({
-            message: "Please check your email to reset your password",
-          });
-          resetPassword(
-            user.lastName + " " + user.firstName,
-            user.email,
-            id.toUpperCase()
-          );
-        }
-      }
-    );
-  }
-});
+
 
 // verify email
 
@@ -335,6 +309,35 @@ router.get(
   }
 );
 
+
+router.put("/resetpassword/:email", async (req, res) => {
+  let user = await User.findOne({ email: req.params.email });
+  if (!user) {
+    return res.status(400).json({ success: false, message: "user not found !" });
+  } else {
+    var id = crypto.randomBytes(4).toString('hex');
+    User.findByIdAndUpdate(
+      user._id,
+      { $set: { resetPasswordCode: id.toUpperCase() } },
+      { useFindAndModify: false },
+      (err, data) => {
+        if (err) {
+          console.error(err);
+        } else {
+          resetPassword(
+            user.lastName + " " + user.firstName,
+            user.email,
+            id.toUpperCase()
+          ); return res.status(200).json({ success: false, email: user.email, });
+
+        }
+      }
+    );
+  }
+});
+
+
+
 router.put("/reset", async (req, res) => {
 
   if (!req.body.code) res.json("code is required");
@@ -344,7 +347,7 @@ router.put("/reset", async (req, res) => {
   })
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "User Not found." });
+        return res.status(404).send({ success: false, message: "User Not found." });
       }
       if (user.resetPasswordCode.toUpperCase() == req.body.code.toUpperCase()) {
 
@@ -357,30 +360,34 @@ router.put("/reset", async (req, res) => {
 
             User.findByIdAndUpdate(
               user._id,
-              { $set: { password: hashedPassword } },
+              { $set: { password: hashedPassword, resetPasswordCode: null } },
               { useFindAndModify: false },
               (err, data) => {
                 if (err) {
                   console.error(err);
                 }
                 else {
-                  res.json({ msg: "user updated" });
+                  res.status(200).json({ success: true, message: "your password has been updated" });
                 }
               }
             );
           } else {
-            res.json({ msg: "passwords not match" });
+            res.status(400).json({ success: false, message: "passwords not match" });
           }
         } else {
-          res.json({ msg: "password and confirmPassword are required" });
+          res.status(400).json({ success: false, message: "password and confirmPassword are required" });
         }
       } else {
-        res.json({ msg: "code incorrect" });
+        res.status(400).json({ success: false, message: "code incorrect" });
       }
 
 
     })
     .catch((e) => console.log("error", e));
 })
+
+
+
+
 
 module.exports = router;
