@@ -65,6 +65,7 @@ router.post("/register", [userValidator], async (req, res) => {
           res.status(200).json({
             message:
               "User was registered successfully! Please check your email",
+            user_id: user._id
           });
 
           sendConfirmationEmail(
@@ -175,7 +176,8 @@ router.get("/facebook", passport.authorize("facebook", { scope: ["email"] }));
 router.get(
   "/facebook/callback",
   passport.authenticate("facebook", {
-    failureRedirect: "/login",
+    failureRedirect: "/login", session: false
+
   }),
   (req, res) => {
     const email = req.user.emails[0].value;
@@ -184,12 +186,8 @@ router.get(
       User.findOne({ email: email }).then((match, noMatch) => {
         if (match) {
           const accessToken = issueJWT(match);
-          console.log(accessToken);
-          return res.status(200).json({
-            success: true,
-            token: accessToken.token,
-            expiresIn: accessToken.expires,
-          });
+          res.redirect("http://localhost:3000/?token=" + accessToken.token);
+
         } else {
           const { familyName, givenName } = req.user.name;
           let newUser = new User({
@@ -220,6 +218,13 @@ router.get(
     }
   }
 );
+
+
+router.get("/logout", (req, res) => {
+  req.logout();
+  res.redirect("http://localhost:3000")
+})
+
 /**
  *
  *
@@ -239,7 +244,7 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login", successRedirect: "http://localhost:3000/archive/the-demo-archive-slug" }),
+  passport.authenticate("google", { failureRedirect: "/login", session: false }),
   (req, res) => {
     const email = req.user.emails[0].value;
 
@@ -247,12 +252,7 @@ router.get(
       User.findOne({ email: email }).then((match, noMatch) => {
         if (match) {
           const accessToken = issueJWT(match);
-          console.log(accessToken);
-          return res.status(200).json({
-            success: true,
-            token: accessToken.token,
-            expiresIn: accessToken.expires,
-          });
+          res.redirect("http://localhost:3000/?token=" + accessToken.token);
         } else {
           const { familyName, givenName } = req.user.name;
           let newUser = new User({
@@ -296,19 +296,14 @@ router.get(
 
 router.get(
   "/github/callback",
-  passport.authenticate("github", { failureRedirect: "/login" }),
+  passport.authenticate("github", { failureRedirect: "/login", session: false }),
   function (req, res) {
     const email = req.user.emails[0].value;
     try {
       User.findOne({ email: email }).then((match, noMatch) => {
         if (match) {
           const accessToken = issueJWT(match);
-          console.log(accessToken);
-          return res.status(200).json({
-            success: true,
-            token: accessToken.token,
-            expiresIn: accessToken.expires,
-          });
+          res.redirect("http://localhost:3000/?token=" + accessToken.token);
         } else {
           // const { familyName, givenName } = req.user.name;
           let newUser = new User({
