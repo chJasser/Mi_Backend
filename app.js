@@ -138,6 +138,7 @@ app.use("/reclamations", reclamationRouter);
 app.use("/products", productRouter);
 app.use("/sellers", sellerRouter);
 app.use("/product_reviews", productReviewsRouter);
+app.use("/invoice_details", invoiceDetailsRouter);
 app.use("/invoices", invoiceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/courseComments", courseCommentsRouter);

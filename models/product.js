@@ -71,6 +71,10 @@ const ProductSchema = new Schema(
         ref: "ProductReview",
       },
     ],
+    discountPercent: {
+      type: Number,
+      default: 0
+    }
   },
   { timestamps: true }
 );
