@@ -47,6 +47,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+// makes the folder public 
+app.use('/uploads', express.static('uploads'));
 /*
 **
 **
@@ -127,7 +129,7 @@ app.use(flash());
 ***/
 //routes
 // app.use("/auth", authRouter);
-app.use("/authentication", authenticationRouter);
+app.use("/authentification", authenticationRouter);
 app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);
@@ -136,6 +138,7 @@ app.use("/reclamations", reclamationRouter);
 app.use("/products", productRouter);
 app.use("/sellers", sellerRouter);
 app.use("/product_reviews", productReviewsRouter);
+app.use("/invoice_details", invoiceDetailsRouter);
 app.use("/invoices", invoiceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/courseComments", courseCommentsRouter);

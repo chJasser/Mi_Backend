@@ -56,7 +56,6 @@ router.get("/filter", (req, res) => {
  *
  *
  */
-
 router.get("/", [auth], (req, res) => {
   const {
     label,
@@ -119,6 +118,7 @@ router.post(
       type: req.body.type,
       seller: req.user._id,
       productImage: filesarray,
+      discountPercent: req.body.discountPercent,
     });
 
     newproduct.save(function (err, product) {
