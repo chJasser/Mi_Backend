@@ -123,7 +123,7 @@ router.post("/login", (req, res) => {
       if (!user) {
         return res.status(404).json({ success: false, message: "you need to register first" });
       } else if (user.status != "Active") {
-        return res.status(401).send({
+        return res.status(401).json({
           success: false, message: "Pending Account. Please Verify Your Email!",
         });
       } else {
@@ -239,7 +239,7 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login",successRedirect:"http://localhost:3000/archive/the-demo-archive-slug" }),
+  passport.authenticate("google", { failureRedirect: "/login", successRedirect: "http://localhost:3000/archive/the-demo-archive-slug" }),
   (req, res) => {
     const email = req.user.emails[0].value;
 
