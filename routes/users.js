@@ -55,7 +55,7 @@ router.get("/email/:email", (req, res) => {
 });
 
 /* GET user by id . */
-router.get("/:id", [auth, verifyTokenAdmin], async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -176,7 +176,6 @@ router.put(
 );
 router.put(
   "/img/:id",
-  auth,
   multerUpload.single("picture"),
   async (req, res) => {
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
@@ -190,8 +189,8 @@ router.put(
           else {
             User.findByIdAndUpdate(
               req.params.id,
-              { $set: { profilePicture: JSON.stringify(req.file.filename) } },
-              { useFindAndModify: false },
+              { $set: { profilePicture: req.file.filename } },
+             // { useFindAndModify: false },
               (err, data) => {
                 if (err) {
                   console.error(err);
@@ -214,12 +213,12 @@ router.put(
 
 router.put(
   "/updateProfile/:id",
-  auth,
   multerUpload.single("picture"),
   async (req, res) => {
     try {
       console.log(req.user);
-      if (req.user.id === req.params.id) {
+      if (req.user.id === req.params.id)
+       {
         const obj = JSON.parse(JSON.stringify(req.body));
         console.log(req.body.firstName);
         const {
@@ -230,7 +229,7 @@ router.put(
           sex,
           phoneNumber,
           address,
-          password,
+         password,
         } = req.body;
         let userFields = {};
         let hashedPassword = await bcrypt.hash(password, 10);
@@ -244,7 +243,7 @@ router.put(
         if (password) userFields.password = hashedPassword;
         if (req.file) userFields.profilePicture = req.file.path;
         console.log("im here");
-        User.findByIdAndUpdate(req.user.id, {
+        User.findByIdAndUpdate(req.params.id, {
           $set: userFields,
         })
           .then((result) => {
