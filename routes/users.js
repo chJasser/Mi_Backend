@@ -84,16 +84,21 @@ router.delete("/:id", [auth, verifyTokenAdmin], async (req, res) => {
   }
 });
 
-
-//update personal informations 
+//update personal informations
 
 router.put(
   "/:id",
   [
-    check("firstName", "first name must be between 4 characters and 15 characters")
+    check(
+      "firstName",
+      "first name must be between 4 characters and 15 characters"
+    )
       .isLength({ min: 4, max: 15 })
       .optional(),
-    check("lastName", "last name must be between 4 characters and 15 characters")
+    check(
+      "lastName",
+      "last name must be between 4 characters and 15 characters"
+    )
       .isLength({ min: 4, max: 15 })
       .optional(),
     check("email", "email is required")
@@ -106,12 +111,14 @@ router.put(
       })
       .withMessage("Password must contain at least 6 characters")
       .matches(/\d/)
-      .withMessage("password must contain a number").optional(),
+      .withMessage("password must contain a number")
+      .optional(),
 
-    check("phoneNumber", "phone number is required").isLength({
-      min: 8,
-    }).optional(),
-
+    check("phoneNumber", "phone number is required")
+      .isLength({
+        min: 8,
+      })
+      .optional(),
   ],
   auth,
   verifyPassword,
@@ -151,8 +158,7 @@ router.put(
           .then((user) => {
             if (!user) {
               return res.json({ msg: "user not find" });
-            }
-            else {
+            } else {
               User.findByIdAndUpdate(
                 req.params.id,
                 { $set: updateUser },
@@ -161,8 +167,7 @@ router.put(
                   if (err) {
                     console.error(err);
                     res.json({ msg: "email id used" });
-                  }
-                  else {
+                  } else {
                     res.json({ msg: "user updated" });
                   }
                 }
@@ -185,8 +190,7 @@ router.put(
         .then((user) => {
           if (!user) {
             return res.json({ msg: "user not find" });
-          }
-          else {
+          } else {
             User.findByIdAndUpdate(
               req.params.id,
               { $set: { profilePicture: req.file.filename } },
@@ -194,8 +198,7 @@ router.put(
               (err, data) => {
                 if (err) {
                   console.error(err);
-                }
-                else {
+                } else {
                   res.json({ msg: "user updated" });
                 }
               }
@@ -203,64 +206,56 @@ router.put(
           }
         })
         .catch((err) => console.log(err.message));
-
     }
   }
 );
 
-
-
-
 router.put(
   "/updateProfile/:id",
+  // auth,
   multerUpload.single("picture"),
   async (req, res) => {
     try {
-      console.log(req.user);
-      if (req.user.id === req.params.id)
-       {
-        const obj = JSON.parse(JSON.stringify(req.body));
-        console.log(req.body.firstName);
-        const {
-          firstName,
-          lastName,
-          email,
-          birthDate,
-          sex,
-          phoneNumber,
-          address,
-         password,
-        } = req.body;
-        let userFields = {};
-        let hashedPassword = await bcrypt.hash(password, 10);
-        if (firstName) userFields.firstName = firstName;
-        if (lastName) userFields.lastName = lastName;
-        if (email) userFields.email = email;
-        if (birthDate) userFields.birthDate = birthDate;
-        if (sex) userFields.sex = sex;
-        if (phoneNumber) userFields.phoneNumber = phoneNumber;
-        if (address) userFields.address = address;
-        if (password) userFields.password = hashedPassword;
-        if (req.file) userFields.profilePicture = req.file.path;
-        console.log("im here");
-        User.findByIdAndUpdate(req.params.id, {
-          $set: userFields,
+      // if (req.user.id === req.params.id) {
+      const {
+        firstName,
+        lastName,
+        email,
+        birthDate,
+        sex,
+        phoneNumber,
+        address,
+        // password,
+      } = req.body;
+      let userFields = {};
+      // let hashedPassword = await bcrypt.hash(password, 10);
+      if (firstName) userFields.firstName = firstName;
+      if (lastName) userFields.lastName = lastName;
+      if (email) userFields.email = email;
+      if (birthDate) userFields.birthDate = birthDate;
+      if (sex) userFields.sex = sex;
+      if (phoneNumber) userFields.phoneNumber = phoneNumber;
+      if (address) userFields.address = address;
+      // if (password) userFields.password = hashedPassword;
+      if (req.file) userFields.profilePicture = req.file.path;
+      User.findByIdAndUpdate(req.params.id, {
+        $set: userFields,
+      })
+        .then((result) => {
+          res.status(200).json("updated successfully !");
         })
-          .then((result) => {
-            res.status(200).json("updated successfully !");
-          })
-          .catch((error) => {
-            return res.status(500).json(error.message);
-          });
-      } else {
-        res
-          .status(400)
-          .json(
-            "not the same id that you logged in with ... something went wrong !"
-          );
-      }
+        .catch((error) => {
+          return res.status(500).json(error.message);
+        });
+      // } else {
+      // res
+      //   .status(400)
+      //   .json(
+      //     "not the same id that you logged in with ... something went wrong !"
+      //   );
+      // }
     } catch (error) {
-      return res.status(500).json("error !");
+      return res.status(500).json(error.message);
     }
   }
 );
