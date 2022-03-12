@@ -9,10 +9,6 @@ const ResourceSchema = new Schema(
     path: {
       type: String,
     },
-    chapter: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Chapter",
-    },
   },
   { timestamps: true }
 );

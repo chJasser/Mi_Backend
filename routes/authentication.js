@@ -4,8 +4,8 @@ const User = require("../models/user");
 const Teacher = require("../models/teacher");
 const Student = require("../models/student");
 const Seller = require("../models/seller");
-const Admin = require("../models/admin");
 const passport = require("passport");
+
 const {
   validatePassword,
   issueJWT,
@@ -13,6 +13,7 @@ const {
   verifyUser,
   resetPassword,
   auth,
+  multerUpload,
 } = require("../lib/utils");
 const { userValidator } = require("../validators/userValidator");
 const { validationResult } = require("express-validator");
@@ -33,74 +34,81 @@ const FRONT_URL = "http://localhost:3000/";
  */
 // register user
 
-router.post("/register", [userValidator], async (req, res) => {
-  if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
-    return res.status(400).json({ message: "Object missing" });
-  } else {
-    const errors = validationResult(req).errors;
-    if (errors.length !== 0) return res.status(400).json(errors);
-    else {
-      let user = await User.findOne({ email: req.body.email });
-      if (user) {
-        return res.status(400).json({ message: "email already used" });
-      } else {
-        const {
-          firstName,
-          lastName,
-          email,
-          password,
-          birthDate,
-          sex,
-          profilePicture,
-          phoneNumber,
-          address,
-          role,
-        } = req.body;
+router.post(
+  "/register-user",
 
-        let hashedPassword = await bcrypt.hash(password, 10);
-        let user = new User({
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          password: hashedPassword,
-          birthDate: birthDate,
-          sex: sex,
-          role: role,
-          address: address,
-          profilePicture: profilePicture,
-          phoneNumber: phoneNumber,
-          userName: firstName + " " + lastName,
-        });
-        const userToken = issueJWT(user);
-        user.confirmationCode = userToken.token.substring(7);
-        user.save((err, user) => {
-          if (err) {
-            res.status(500).send({ message: err });
-            return;
-          } else {
-            res.status(200).json({
-              message:
-                "User was registered successfully! Please check your email",
-            });
-          }
+  multerUpload.single("picture"),
+  async (req, res) => {
+    if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: "Object missing" });
+    } else {
+      const errors = validationResult(req).errors;
+      if (errors.length !== 0) return res.status(400).json(errors);
+      else {
+        let user = await User.findOne({ email: req.body.email });
+        if (user) {
+          return res.status(400).json({ message: "email already used" });
+        } else {
+          const {
+            firstName,
+            lastName,
+            email,
+            password,
+            birthDate,
+            sex,
+            phoneNumber,
+            address,
+            role,
+          } = req.body;
 
-          sendConfirmationEmail(
-            lastName + " " + firstName,
-            user.email,
-            user.confirmationCode
-          );
-        });
+          let hashedPassword = await bcrypt.hash(password, 10);
+          let user = new User({
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            password: hashedPassword,
+            birthDate: birthDate,
+            sex: sex,
+            role: role,
+            address: address,
+            profilePicture: req.file.path,
+            phoneNumber: phoneNumber,
+            userName: firstName + " " + lastName,
+          });
+          const userToken = issueJWT(user);
+          user.confirmationCode = userToken.token.substring(7);
+          user.save((err, user) => {
+            if (err) {
+              res.status(500).send({ message: err });
+              return;
+            } else {
+              res.status(200).json({
+                message:
+                  "User was registered successfully! Please check your email",
+                user: user,
+              });
+            }
+
+            // sendConfirmationEmail(
+            //   lastName + " " + firstName,
+            //   user.email,
+            //   user.confirmationCode
+            // );
+          });
+        }
       }
     }
   }
-});
+);
 
-router.post("/register_account", [auth], (req, res) => {
+router.post("/register-role", [auth], (req, res) => {
   const role = req.user.role;
-  if (role == "user")
+  console.log(role);
+  if (role == "user") {
     res.status(200).json({
       user: req.user,
     });
+  }
   if (role == "teacher") {
     const { about, degrees, rib } = req.body;
     if (!about || !degrees || !rib)
@@ -127,50 +135,56 @@ router.post("/register_account", [auth], (req, res) => {
       );
   }
   if (role == "student") {
+    console.log("here");
     const { about, interestedIn } = req.body;
-    if (!about || !interestedIn)
-      res.json({
+    if (!about || !interestedIn) {
+      return res.json({
         success: false,
         message:
           "you need to specify your About section and some of your interests",
       });
-    let student = new Student({
-      user: req.user.id,
-      about: about,
-      interestedIn: interestedIn,
-    });
-    student
-      .save()
-      .then((student) => {
-        res.status(200).json({
-          student: student,
+    } else {
+      let student = new Student({
+        user: req.user.id,
+        about: about,
+        interestedIn: interestedIn,
+      });
+      student
+        .save()
+        .then((student) => {
+          return res.status(200).json({
+            student: student,
+          });
+        })
+        .catch((err) => {
+          return res.status(500).json({ success: false, message: err.message });
         });
-      })
-      .catch((err) =>
-        res.status(500).json({ success: false, message: "error !" })
-      );
+    }
   }
+
   if (role == "seller") {
     const { rib } = req.body;
-    if (!rib)
+    if (!rib) {
       res.json({
         success: false,
         message: "you need to specify your bank account rib",
       });
-    let seller = new Seller({
-      user: req.user.id,
-      rib: rib,
-    });
-    seller
-      .save()
-      .then((seller) => {
-        res.status(200).json({
-          seller: seller,
-        });
-      })
-      .catch((err) =>
-        res.status(500).json({ success: false, message: "error !" })
-      );
+    } else {
+      let seller = new Seller({
+        user: req.user.id,
+        rib: rib,
+      });
+      seller
+        .save()
+        .then((seller) => {
+          res.status(200).json({
+            seller: seller,
+          });
+        })
+        .catch((err) =>
+          res.status(500).json({ success: false, message: "error !" })
+        );
+    }
   }
 });
 router.put("/resetpassword/:email", async (req, res) => {

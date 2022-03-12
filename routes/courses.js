@@ -8,7 +8,7 @@ const { auth } = require("../lib/utils");
 const { verifyTokenTeacher } = require("../middleware/verifyToken");
 const Course = require("../models/course");
 const Teacher = require("../models/teacher");
-const User = require("../models/user");
+const Student = require("../models/student");
 
 router.get("/get-courses", (req, res) => {
   Course.find().then((courses) => {
@@ -49,7 +49,7 @@ router.post("/add-course", [auth], async (req, res) => {
   if (level) Coursefeilds.level = level;
   if (languages) Coursefeilds.languages = languages;
   const teacher = await Teacher.findOne().where("user").equals(req.user.id);
-  console.log(teacher);
+
   if (teacher) {
     Coursefeilds.teacher = teacher.id;
     let course = new Course(Coursefeilds);
@@ -157,5 +157,88 @@ router.delete("/delete-course/:id", [auth], async (req, res) => {
     }
   }
 });
+
+router.put("/subscribe-course/:id", [auth], async (req, res) => {
+  const student = await Student.findOne().where("user").equals(req.user.id);
+
+  if (!student) {
+    return res.status(500).json({
+      success: false,
+      message: "could not find student logged in",
+    });
+  } else {
+    let course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(500).json({
+        success: false,
+        message: "could not find course",
+      });
+    } else {
+      //if the student is subscribed to the course already !
+      var match = await course.students.filter(
+        (s) => s.toString() == student._id.toString()
+      );
+      //if match == true maaneha el course does'nt have any student with the ID provided
+
+      if (match.length == 0) {
+        course.students.push(student.id);
+        course
+          .save()
+          .then(() => {
+            return res.status(200).json({
+              success: true,
+              message: "subscribed to course",
+              course: course.label,
+            });
+          })
+          .catch((err) => {
+            return res.status(500).json({
+              success: false,
+              message: err.message,
+            });
+          });
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: "already subscribed to this course",
+        });
+      }
+    }
+  }
+});
+
+router.put("/unsubscribe-course/:id", [auth], async (req, res) => {
+  const student = await Student.findOne().where("user").equals(req.user.id);
+  if (!student) {
+    return res.status(500).json({
+      success: false,
+      message: "could not find student logged in",
+    });
+  } else {
+    let course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(500).json({
+        success: false,
+        message: "could not find course",
+      });
+    } else {
+      course.students.splice(student.id, 1);
+      await course.save().then(() => {
+        return res.status(500).json({
+          success: true,
+          message: "unsubscribed from course",
+          course: course.label,
+        });
+      });
+    }
+  }
+});
+
+/**
+ *
+ * chapter part
+ *
+ */
 
 module.exports = router;
