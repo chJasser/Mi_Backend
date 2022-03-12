@@ -213,54 +213,50 @@ router.put(
 
 router.put(
   "/updateProfile/:id",
-  auth,
+  // auth,
   multerUpload.single("picture"),
   async (req, res) => {
     try {
-      console.log(req.user);
-      if (req.user.id === req.params.id) {
-        const obj = JSON.parse(JSON.stringify(req.body));
-        console.log(req.body.firstName);
-        const {
-          firstName,
-          lastName,
-          email,
-          birthDate,
-          sex,
-          phoneNumber,
-          address,
-          password,
-        } = req.body;
-        let userFields = {};
-        let hashedPassword = await bcrypt.hash(password, 10);
-        if (firstName) userFields.firstName = firstName;
-        if (lastName) userFields.lastName = lastName;
-        if (email) userFields.email = email;
-        if (birthDate) userFields.birthDate = birthDate;
-        if (sex) userFields.sex = sex;
-        if (phoneNumber) userFields.phoneNumber = phoneNumber;
-        if (address) userFields.address = address;
-        if (password) userFields.password = hashedPassword;
-        if (req.file) userFields.profilePicture = req.file.path;
-        console.log("im here");
-        User.findByIdAndUpdate(req.user.id, {
-          $set: userFields,
+      // if (req.user.id === req.params.id) {
+      const {
+        firstName,
+        lastName,
+        email,
+        birthDate,
+        sex,
+        phoneNumber,
+        address,
+        // password,
+      } = req.body;
+      let userFields = {};
+      // let hashedPassword = await bcrypt.hash(password, 10);
+      if (firstName) userFields.firstName = firstName;
+      if (lastName) userFields.lastName = lastName;
+      if (email) userFields.email = email;
+      if (birthDate) userFields.birthDate = birthDate;
+      if (sex) userFields.sex = sex;
+      if (phoneNumber) userFields.phoneNumber = phoneNumber;
+      if (address) userFields.address = address;
+      // if (password) userFields.password = hashedPassword;
+      if (req.file) userFields.profilePicture = req.file.path;
+      User.findByIdAndUpdate(req.params.id, {
+        $set: userFields,
+      })
+        .then((result) => {
+          res.status(200).json("updated successfully !");
         })
-          .then((result) => {
-            res.status(200).json("updated successfully !");
-          })
-          .catch((error) => {
-            return res.status(500).json(error.message);
-          });
-      } else {
-        res
-          .status(400)
-          .json(
-            "not the same id that you logged in with ... something went wrong !"
-          );
-      }
+        .catch((error) => {
+          return res.status(500).json(error.message);
+        });
+      // } else {
+      // res
+      //   .status(400)
+      //   .json(
+      //     "not the same id that you logged in with ... something went wrong !"
+      //   );
+      // }
     } catch (error) {
-      return res.status(500).json("error !");
+      return res.status(500).json(error.message);
     }
   }
 );
