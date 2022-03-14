@@ -169,6 +169,7 @@ router.get(
             firstName: givenName,
             lastName: familyName,
             email: email,
+            status: "Active",
           });
           newUser.save().then((done, err) => {
             if (err) {
@@ -178,11 +179,7 @@ router.get(
               });
             } else {
               const tokenForNewUser = issueJWT(done);
-              return res.status(200).json({
-                success: true,
-                token: tokenForNewUser.token,
-                expiresIn: tokenForNewUser.expires,
-              });
+              res.redirect("http://localhost:3000/passport/register/?id=" + done._id + "&token=" + tokenForNewUser.token);
             }
           });
         }
@@ -234,6 +231,7 @@ router.get(
             firstName: givenName,
             lastName: familyName,
             email: email,
+
           });
           newUser.save().then((done, err) => {
             if (err) {
@@ -241,13 +239,9 @@ router.get(
                 success: false,
                 message: "errors has occurred",
               });
-            } else {
+            } else { // built-in utility
               const tokenForNewUser = issueJWT(done);
-              return res.status(200).json({
-                success: true,
-                token: tokenForNewUser.token,
-                expiresIn: tokenForNewUser.expires,
-              });
+              res.redirect("http://localhost:3000/passport/register/?id=" + done._id + "&token=" + tokenForNewUser.token);
             }
           });
         }
@@ -279,32 +273,31 @@ router.get(
           const accessToken = issueJWT(match);
           res.redirect("http://localhost:3000/?token=" + accessToken.token);
         } else {
-          // const { familyName, givenName } = req.user.name;
           let newUser = new User({
             userName: req.user.username,
-            // firstName: givenName,
-            // lastName: familyName,
+            firstName: req.user.username,
+            lastName: req.user.username,
             email: email,
+            status: "Active",
           });
           newUser.save().then((done, err) => {
             if (err) {
-              return res.status(200).json({
+              return res.status(400).json({
                 success: false,
                 message: "errors has occurred",
               });
             } else {
               const tokenForNewUser = issueJWT(done);
-              return res.status(200).json({
-                success: true,
-                token: tokenForNewUser.token,
-                expiresIn: tokenForNewUser.expires,
-              });
+              res.redirect("http://localhost:3000/passport/register/?id=" + done._id + "&token=" + tokenForNewUser.token);
             }
           });
         }
       });
     } catch (error) {
-      res.json("error");
+      res.status(400).json({
+        success: false,
+        message: "error"
+      });
     }
   }
 );
@@ -387,7 +380,56 @@ router.put("/reset", async (req, res) => {
 })
 
 
+router.put(
+  "/setpassword/:id",
+  auth,
+  async (req, res) => {
+    const {
+      password,
+      password2
+    } = req.body;
+    if (password !== password2) {
+      res.status(400).json({ success: false, message: "Paswwords does not match" })
+    } else {
+      let hashedPassword = await bcrypt.hash(password, 10);
+      User.findById(req.params.id)
+        .then((user) => {
+          if (!user) {
+            res.status(400).json({ success: false, message: "User not found !" })
+          } else {
+            if (req.user._id != user._id.toString()) {
+              res.status(400).json({ success: false, message: "Access denied !" })
+            }
+            else {
 
+              User.findByIdAndUpdate(
+                user._id,
+                { $set: { password: hashedPassword, status: "Active" } },
+                { useFindAndModify: false },
+                (err, data) => {
+                  if (err) {
+                    console.error(err.message);
+                  }
+                  else {
+                    const accessToken = issueJWT(data);
+                    return res.status(200).json({
+                      success: true,
+                      token: accessToken.token,
+                      expiresIn: accessToken.expires,
+                      message: "User was registered successfully!"
+                    });
+
+                  }
+                }
+              );
+            }
+          }
+        }).catch((err) => {
+          console.log(err.message)
+        })
+    }
+  }
+);
 
 
 module.exports = router;
