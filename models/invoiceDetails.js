@@ -11,6 +11,10 @@ const InvoiceDetailsSchema = new Schema({
     type: Number,
     required: true,
   },
+  totalAfterDiscount: {
+    type: Number,
+    required: true
+  },
   discount: {
     type: Number,
     required: true,

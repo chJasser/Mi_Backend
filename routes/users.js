@@ -181,7 +181,6 @@ router.put(
 );
 router.put(
   "/img/:id",
-  auth,
   multerUpload.single("picture"),
   async (req, res) => {
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
@@ -194,8 +193,8 @@ router.put(
           } else {
             User.findByIdAndUpdate(
               req.params.id,
-              { $set: { profilePicture: JSON.stringify(req.file.filename) } },
-              { useFindAndModify: false },
+              { $set: { profilePicture: req.file.filename } },
+             // { useFindAndModify: false },
               (err, data) => {
                 if (err) {
                   console.error(err);

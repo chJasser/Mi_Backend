@@ -8,6 +8,20 @@ const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
 //get all products for all users
+
+router.get("/product/:id", (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "product not found" });
+      } else {
+        res.status(200).json(product);
+      }
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
 router.get("/all-products", (req, res) => {
   var { label, category, marque, minPrice, maxPrice, reference, state, type } =
     req.body;
@@ -120,6 +134,7 @@ router.post(
         type: req.body.type,
         seller: seller.id,
         productImage: filesarray,
+        discountPercent: req.body.discountPercent,
       });
 
       newproduct.save(function (err, product) {
