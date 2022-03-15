@@ -33,7 +33,7 @@ router.post("/register", [auth, sellerValidator], (req, res) => {
             User.findByIdAndUpdate(
               req.user._id,
               { $addToSet: { role: "seller" } },
-              { useFindAndModify: false },
+              { new: true },
               (err, data) => {
                 if (err) {
                   return res.status(500).json({ success: false, message: err.message });
@@ -60,11 +60,11 @@ router.post("/register", [auth, sellerValidator], (req, res) => {
 
 router.get("/getcurrentseller", [auth, verifyTokenSeller], async (req, res) => {
   try {
-    const seller = await Seller.find({ user: req.user._id }).populate("user");
+    const seller = await Seller.findOne({ user: req.user._id }).populate("user");
     if (!seller) {
       return res.status(500).json({ seller: null });;
     }
-    return res.status(200).json({ seller: seller[0] });
+    return res.status(200).json({ seller: seller });
   } catch (error) {
     res.status(500).json(error.message);
   }
