@@ -4,6 +4,8 @@ const Product = require("../models/product");
 var { productValidator } = require("../validators/productValidator");
 const User = require("../models/user");
 const Seller = require("../models/seller");
+const Like = require("../models/like");
+const Bookmark = require("../models/bookmark");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
@@ -115,7 +117,6 @@ router.post(
         message: "can't find a seller account related to this user",
       });
     } else {
-      
       let filesarray = [];
       req.files.forEach((element) => {
         filesarray.push(element.path);
@@ -233,5 +234,198 @@ router.delete(
     }
   }
 );
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+router.put("/add-like/:productId", auth, async (req, res) => {
+  const productToBeLiked = await Product.findOne({ _id: req.params.productId });
+  const userToLikeProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeLiked || !userToLikeProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "you must be logged in and u must put a valid product id !",
+    });
+  } else {
+    const like = await Like.findOne()
+      .where("user", userToLikeProduct._id)
+      .where("product", productToBeLiked._id);
+
+    if (like) {
+      return res.status(500).json({
+        success: false,
+        message: "u already like this product !",
+      });
+    } else {
+      let newLike = new Like({
+        user: userToLikeProduct._id,
+        product: productToBeLiked._id,
+      });
+      newLike
+        .save()
+        .then(() => {
+          Product.findByIdAndUpdate({ _id: productToBeLiked._id })
+            .set("likesCount", productToBeLiked.likesCount + 1)
+            .then((nice) => {
+              return res.status(200).json({
+                success: true,
+                message: "success !",
+              });
+            })
+            .catch((error) => {
+              return res.status(500).json({
+                success: false,
+                message: error.message,
+              });
+            });
+        })
+
+        .catch((error) => {
+          return res.status(500).json({
+            success: false,
+            message: error.message,
+          });
+        });
+    }
+  }
+});
+
+router.put("/remove-like/:productId", auth, async (req, res) => {
+  const productToBeUnLiked = await Product.findOne({
+    _id: req.params.productId,
+  });
+  const userToUnLikeProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeUnLiked || !userToUnLikeProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "something went wrong !",
+    });
+  } else {
+    const like = await Like.findOne()
+      .where("user", userToUnLikeProduct._id)
+      .where("product", productToBeUnLiked._id);
+    if (like) {
+      Like.findOneAndDelete()
+        .where("user", userToUnLikeProduct._id)
+        .then((nice) => {
+          if (nice) {
+            Product.findByIdAndUpdate({ _id: productToBeUnLiked._id })
+              .set("likesCount", productToBeUnLiked.likesCount - 1)
+              .then(() => {
+                return res.status(200).json({
+                  success: true,
+                  message: "success",
+                });
+              })
+              .catch((err) => {
+                return res.status(500).json({
+                  success: false,
+                  message: err.message,
+                });
+              });
+          } else {
+            return res.status(500).json({
+              success: false,
+              message: "something went wrong !",
+            });
+          }
+        })
+        .catch((err) => {
+          return res.status(500).json({
+            success: false,
+            message: err.message,
+          });
+        });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "this user did not like this product ",
+      });
+    }
+  }
+});
+router.put("/add-bookmark/:productId", auth, async (req, res) => {
+  const productToBeBookmarked = await Product.findOne({
+    _id: req.params.productId,
+  });
+  const userToBookmarkProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeBookmarked || !userToBookmarkProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "something went wrong !",
+    });
+  } else {
+    const bookmark = await Bookmark.findOne()
+      .where("user", userToBookmarkProduct._id)
+      .where("product", productToBeBookmarked._id);
+    if (!bookmark) {
+      const newBookmark = new Bookmark({
+        user: userToBookmarkProduct._id,
+        product: productToBeBookmarked._id,
+      });
+      await newBookmark.save((error, result) => {
+        if (error) {
+          return res.status(500).json({
+            success: false,
+            message: error.message,
+          });
+        } else {
+          return res.status(200).json({
+            success: true,
+            message: `product  ${productToBeBookmarked.label}  is bookmarked !`,
+          });
+        }
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "you already bookmarked this product",
+      });
+    }
+  }
+});
+router.put("/remove-bookmark/:productId", auth, async (req, res) => {
+  const productToBeBookmarked = await Product.findOne({
+    _id: req.params.productId,
+  });
+  const userToBookmarkProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeBookmarked || !userToBookmarkProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "something went wrong !",
+    });
+  } else {
+    const bookmark = await Bookmark.findOne()
+      .where("user", userToBookmarkProduct._id)
+      .where("product", productToBeBookmarked._id);
+    if (bookmark) {
+      Bookmark.deleteOne({ _id: bookmark._id })
+        .then(() => {
+          return res.status(200).json({
+            success: true,
+            message: `product  ${productToBeBookmarked.label}  is not bookmarked anymore !`,
+          });
+        })
+        .catch((error) => {
+          return res.status(500).json({
+            success: false,
+            message: error.message,
+          });
+        });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "you already unBookmarked this product",
+      });
+    }
+  }
+});
 
 module.exports = router;

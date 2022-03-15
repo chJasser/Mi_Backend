@@ -59,26 +59,13 @@ const ProductSchema = new Schema(
       enum: ["instrument", "gear"],
       default: "instrument",
     },
-    bookmark:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"bookmark",
-    },
-    like:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"like",
+    likesCount: {
+      type: Number,
+      default: 0,
     },
 
+    productImage: [{ type: String, default: [] }],
 
-    productImage: 
-      [
-        {type:String,
-        default:[]
-        },
-      ]
-      
-      ,
-    
-    
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -87,8 +74,8 @@ const ProductSchema = new Schema(
     ],
     discountPercent: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   { timestamps: true }
 );
