@@ -1,9 +1,7 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
-const Teacher = require("../models/teacher");
-const Student = require("../models/student");
-const Seller = require("../models/seller");
+
 const passport = require("passport");
 
 const {
@@ -33,7 +31,7 @@ var crypto = require("crypto");
  */
 // register user
 
-router.post("/register", [userValidator], async (req, res) => {
+router.post("/register", multerUpload.single("picture"), async (req, res) => {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
     return res.status(400).json({ message: "Object missing" });
   } else {
@@ -51,11 +49,10 @@ router.post("/register", [userValidator], async (req, res) => {
           password,
           birthDate,
           sex,
-          profilePicture,
           phoneNumber,
           address,
-          role,
         } = req.body;
+        const profilePicture = req.file.path;
         let hashedPassword = await bcrypt.hash(password, 10);
         var userToAdd = new User({
           firstName: firstName,
@@ -64,7 +61,6 @@ router.post("/register", [userValidator], async (req, res) => {
           password: hashedPassword,
           birthDate: birthDate,
           sex: sex,
-          role: role,
           address: address,
           profilePicture: profilePicture,
           phoneNumber: phoneNumber,
@@ -72,7 +68,7 @@ router.post("/register", [userValidator], async (req, res) => {
         });
 
         const userToken = issueJWT(userToAdd);
-        userToAdd.confirmationCode = userToken.token.substring(7);
+        userToAdd.confirmationCode = userToken.token.substring(0,7);
         userToAdd.save((err, user) => {
           if (err) {
             res.status(500).send({ message: err });
@@ -96,92 +92,92 @@ router.post("/register", [userValidator], async (req, res) => {
   }
 });
 
-router.post("/register-role", [auth], (req, res) => {
-  const role = req.user.role;
-  console.log(role);
-  if (role == "user") {
-    res.status(200).json({
-      user: req.user,
-    });
-  }
-  if (role == "teacher") {
-    const { about, degrees, rib } = req.body;
-    if (!about || !degrees || !rib)
-      res.json({
-        success: false,
-        message:
-          "you need to specify your About section and some of your degrees and your bank account rib",
-      });
-    let teacher = new Teacher({
-      user: req.user.id,
-      about: about,
-      degrees: degrees,
-      rib: rib,
-    });
-    teacher
-      .save()
-      .then((teacher) => {
-        res.status(200).json({
-          teacher: teacher,
-        });
-      })
-      .catch((err) =>
-        res.status(500).json({ success: false, message: err.message })
-      );
-  }
-  if (role == "student") {
-    console.log("here");
-    const { about, interestedIn } = req.body;
-    if (!about || !interestedIn) {
-      return res.json({
-        success: false,
-        message:
-          "you need to specify your About section and some of your interests",
-      });
-    } else {
-      let student = new Student({
-        user: req.user.id,
-        about: about,
-        interestedIn: interestedIn,
-      });
-      student
-        .save()
-        .then((student) => {
-          return res.status(200).json({
-            student: student,
-          });
-        })
-        .catch((err) => {
-          return res.status(500).json({ success: false, message: err.message });
-        });
-    }
-  }
+// router.post("/register-role", [auth], (req, res) => {
+//   const role = req.user.role;
+//   console.log(role);
+//   if (role == "user") {
+//     res.status(200).json({
+//       user: req.user,
+//     });
+//   }
+//   if (role == "teacher") {
+//     const { about, degrees, rib } = req.body;
+//     if (!about || !degrees || !rib)
+//       res.json({
+//         success: false,
+//         message:
+//           "you need to specify your About section and some of your degrees and your bank account rib",
+//       });
+//     let teacher = new Teacher({
+//       user: req.user.id,
+//       about: about,
+//       degrees: degrees,
+//       rib: rib,
+//     });
+//     teacher
+//       .save()
+//       .then((teacher) => {
+//         res.status(200).json({
+//           teacher: teacher,
+//         });
+//       })
+//       .catch((err) =>
+//         res.status(500).json({ success: false, message: err.message })
+//       );
+//   }
+//   if (role == "student") {
+//     console.log("here");
+//     const { about, interestedIn } = req.body;
+//     if (!about || !interestedIn) {
+//       return res.json({
+//         success: false,
+//         message:
+//           "you need to specify your About section and some of your interests",
+//       });
+//     } else {
+//       let student = new Student({
+//         user: req.user.id,
+//         about: about,
+//         interestedIn: interestedIn,
+//       });
+//       student
+//         .save()
+//         .then((student) => {
+//           return res.status(200).json({
+//             student: student,
+//           });
+//         })
+//         .catch((err) => {
+//           return res.status(500).json({ success: false, message: err.message });
+//         });
+//     }
+//   }
 
-  if (role == "seller") {
-    const { rib } = req.body;
-    if (!rib) {
-      res.json({
-        success: false,
-        message: "you need to specify your bank account rib",
-      });
-    } else {
-      let seller = new Seller({
-        user: req.user.id,
-        rib: rib,
-      });
-      seller
-        .save()
-        .then((seller) => {
-          res.status(200).json({
-            seller: seller,
-          });
-        })
-        .catch((err) =>
-          res.status(500).json({ success: false, message: "error !" })
-        );
-    }
-  }
-});
+//   if (role == "seller") {
+//     const { rib } = req.body;
+//     if (!rib) {
+//       res.json({
+//         success: false,
+//         message: "you need to specify your bank account rib",
+//       });
+//     } else {
+//       let seller = new Seller({
+//         user: req.user.id,
+//         rib: rib,
+//       });
+//       seller
+//         .save()
+//         .then((seller) => {
+//           res.status(200).json({
+//             seller: seller,
+//           });
+//         })
+//         .catch((err) =>
+//           res.status(500).json({ success: false, message: "error !" })
+//         );
+//     }
+//   }
+// });
 router.put("/resetpassword/:email", async (req, res) => {
   let user = await User.findOne({ email: req.params.email });
   if (!user) {
@@ -532,12 +528,10 @@ router.put("/reset", async (req, res) => {
                 if (err) {
                   console.error(err);
                 } else {
-                  res
-                    .status(200)
-                    .json({
-                      success: true,
-                      message: "your password has been updated",
-                    });
+                  res.status(200).json({
+                    success: true,
+                    message: "your password has been updated",
+                  });
                 }
               }
             );
@@ -547,12 +541,10 @@ router.put("/reset", async (req, res) => {
               .json({ success: false, message: "passwords not match" });
           }
         } else {
-          res
-            .status(400)
-            .json({
-              success: false,
-              message: "password and confirmPassword are required",
-            });
+          res.status(400).json({
+            success: false,
+            message: "password and confirmPassword are required",
+          });
         }
       } else {
         res.status(400).json({ success: false, message: "code incorrect" });

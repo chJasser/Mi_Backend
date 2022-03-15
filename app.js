@@ -127,7 +127,7 @@ app.use(flash());
  ***/
 //routes
 // app.use("/auth", authRouter);
-app.use("/authentification", authenticationRouter);
+app.use("/authentication", authenticationRouter);
 app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);

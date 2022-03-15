@@ -115,10 +115,7 @@ router.post(
         message: "can't find a seller account related to this user",
       });
     } else {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        res.json({ errors: errors.array() });
-      }
+      
       let filesarray = [];
       req.files.forEach((element) => {
         filesarray.push(element.path);
@@ -183,7 +180,7 @@ router.put(
           } else if (product.seller.toString() != seller.id) {
             return res.status(500).json({
               success: false,
-              message: "product related to the user !",
+              message: "product not related to the user !",
             });
           } else {
             Product.findByIdAndUpdate(
