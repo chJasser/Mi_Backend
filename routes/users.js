@@ -49,8 +49,8 @@ router.get("/", [auth, verifyTokenAdmin], async (req, res) => {
 // find user with email
 router.get("/email/:email", (req, res) => {
   User.findOne({ email: req.params.email }, (err, user) => {
-    if (!user) return res.status(404).json("no user found");
-    res.json(user);
+    if (!user) return res.status(404).json({ success: false, message: "user not found" });
+    res.status(200).json({ success: true, user: user });
   });
 });
 
@@ -260,4 +260,9 @@ router.put(
     }
   }
 );
+
+
+
+
+
 module.exports = router;

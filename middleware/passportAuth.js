@@ -32,6 +32,14 @@ const jasonWebTokenStrategy = new JwtStrategy(options, (jwt_payload, done) => {
   });
 });
 
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
 /****
  *
  *
@@ -104,13 +112,7 @@ passport.use(
  *
  */
 
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
 
-passport.deserializeUser((user, done) => {
-  done(null, user);
-});
 module.exports = () => {
   passport.use(facebookStrategy);
   passport.use(googleStrategy);
