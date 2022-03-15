@@ -2,7 +2,7 @@ var express = require("express");
 const { validationResult } = require("express-validator");
 var router = express.Router();
 const Teacher = require("../models/teacher");
-const { auth, multerUpload } = require("../lib/utils");
+const { auth, mulerUploadPdf } = require("../lib/utils");
 const { teacherValidator } = require("../validators/teacherValidator");
 const {
   verifyTokenAdmin,
@@ -10,7 +10,7 @@ const {
 
 router.post("/register",
   [auth],
-  multerUpload.array("files"), (req, res) => {
+  mulerUploadPdf.array("files"), (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.json({ errors: errors.array() });
