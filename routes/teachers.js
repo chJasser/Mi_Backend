@@ -2,9 +2,59 @@ var express = require("express");
 const { validationResult } = require("express-validator");
 var router = express.Router();
 const Teacher = require("../models/teacher");
-const { auth } = require("../lib/utils");
+const { auth, multerUpload } = require("../lib/utils");
 const { teacherValidator } = require("../validators/teacherValidator");
-const { verifyTokenAdmin } = require("../middleware/verifyToken");
+const {
+  verifyTokenAdmin,
+} = require("../middleware/verifyToken");
+
+router.post("/register",
+  [auth],
+  multerUpload.array("files"), (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.json({ errors: errors.array() });
+    }
+    let filesarray = [];
+    req.files.forEach((element) => {
+      filesarray.push(element.path);
+    });
+
+    const newTeacher = new Teacher({
+      about: req.body.about,
+      degrees: filesarray,
+      rib: req.body.rib,
+      user: req.user._id,
+    });
+    Teacher.findOne({ user: req.user._id }).then(teacher => {
+      if (teacher) {
+        return res.status(500).json({ success: false, message: "Account already exists !" });
+      } else {
+        newTeacher.save((err, newTeacher) => {
+          if (err) {
+            res.status(500).json({ success: false, message: err });
+            return;
+          }
+          User.findByIdAndUpdate(
+            req.user._id,
+            { $addToSet: { role: "teacher" } },
+            { useFindAndModify: false },
+            (err, data) => {
+              if (err) {
+                return res.status(500).json({ success: false, message: err });
+              }
+              else {
+
+                return res.status(200).json({ success: true, message: "Account was registered successfully !" });
+              }
+            }
+          )
+        });
+      }
+    }).catch(err => { console.log(err) });
+  });
+
+
 
 /* GET blocked teachers . */
 router.get("/blocked-teachers", [auth, verifyTokenAdmin], async (req, res) => {
