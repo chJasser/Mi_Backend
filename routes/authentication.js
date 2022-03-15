@@ -25,7 +25,6 @@ var crypto = require("crypto");
  *
  *
  */
-const FRONT_URL = "http://localhost:3000/";
 
 /**
  *
