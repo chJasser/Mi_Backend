@@ -11,6 +11,11 @@ const SellerSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    about: {
+      type: String,
+      required: true,
+      maxLength: 300,
+    },
     products: [
       {
         type: mongoose.Schema.Types.ObjectId,

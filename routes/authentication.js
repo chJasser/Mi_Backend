@@ -30,8 +30,7 @@ var crypto = require("crypto");
  *
  */
 // register user
-
-router.post("/register", multerUpload.single("picture"), async (req, res) => {
+router.post("/register", [userValidator], async (req, res) => {
   if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
     return res.status(400).json({ message: "Object missing" });
   } else {
@@ -49,43 +48,43 @@ router.post("/register", multerUpload.single("picture"), async (req, res) => {
           password,
           birthDate,
           sex,
+          profilePicture,
           phoneNumber,
           address,
+          role,
         } = req.body;
-        const profilePicture = req.file.path;
         let hashedPassword = await bcrypt.hash(password, 10);
-        var userToAdd = new User({
+        let user = new User({
           firstName: firstName,
           lastName: lastName,
           email: email,
           password: hashedPassword,
           birthDate: birthDate,
           sex: sex,
+          role: role,
           address: address,
           profilePicture: profilePicture,
           phoneNumber: phoneNumber,
           userName: firstName + " " + lastName,
         });
-
-        const userToken = issueJWT(userToAdd);
-        userToAdd.confirmationCode = userToken.token.substring(0,7);
-        userToAdd.save((err, user) => {
+        const userToken = issueJWT(user);
+        user.confirmationCode = userToken.token.substring(7);
+        user.save((err, user) => {
           if (err) {
             res.status(500).send({ message: err });
             return;
-          } else {
-            res.status(200).json({
-              message:
-                "User was registered successfully! Please check your email",
-              user: user,
-            });
           }
+          res.status(200).json({
+            message:
+              "User was registered successfully! Please check your email",
+            user_id: user._id
+          });
 
-          // sendConfirmationEmail(
-          //   lastName + " " + firstName,
-          //   user.email,
-          //   user.confirmationCode
-          // );
+          sendConfirmationEmail(
+            lastName + " " + firstName,
+            user.email,
+            user.confirmationCode
+          );
         });
       }
     }
