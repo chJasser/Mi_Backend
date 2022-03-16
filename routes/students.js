@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const Student = require("../models/student");
-const { auth } = require("../lib/utils");
+const { auth, issueJWT } = require("../lib/utils");
 const User = require("../models/user");
 const { verifyTokenStudent } = require("../middleware/verifyToken");
 
@@ -27,7 +27,7 @@ router.post("/register", [auth], (req, res) => {
           User.findByIdAndUpdate(
             req.user._id,
             { $addToSet: { role: "student" } },
-            { useFindAndModify: false },
+            { new: true },
             (err, data) => {
               if (err) {
                 return res.status(500).json({ success: false, message: err.message });
@@ -54,10 +54,11 @@ router.post("/register", [auth], (req, res) => {
 router.get("/getcurrentstudent", [auth, verifyTokenStudent], async (req, res) => {
   try {
     const student = await Student.findOne({ user: req.user._id }).populate("user");
+    
     if (!student) {
       return res.status(500).json({ student: null });;
     }
-    return res.status(200).json({ student: student});
+    return res.status(200).json({ student: student });
   } catch (error) {
     res.status(500).json(error.message);
   }
