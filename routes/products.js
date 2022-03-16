@@ -6,6 +6,7 @@ const User = require("../models/user");
 const Seller = require("../models/seller");
 const Like = require("../models/like");
 const Bookmark = require("../models/bookmark");
+const ProductReview = require("../models/productReview");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
@@ -427,5 +428,12 @@ router.put("/remove-bookmark/:productId", auth, async (req, res) => {
     }
   }
 });
+/**
+ *
+ *
+ *
+ *
+ *
+ */
 
 module.exports = router;

@@ -8,12 +8,11 @@ const ProductReview = new Schema(
       maxLength: 255,
       required: true,
     },
-    creator: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required:true,
+      required: true,
     },
-    
   },
   { timestamps: true }
 );

@@ -10,6 +10,9 @@ const Course = require("../models/course");
 const Teacher = require("../models/teacher");
 const Student = require("../models/student");
 
+/**
+ *
+ */
 router.get("/get-courses", (req, res) => {
   Course.find().then((courses) => {
     res.status(200).json(courses);
