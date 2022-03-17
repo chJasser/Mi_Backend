@@ -6,7 +6,7 @@ const TeacherSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      
+
     },
     about: {
       type: String,
@@ -14,15 +14,20 @@ const TeacherSchema = new mongoose.Schema(
       maxLength: 255,
     },
 
-    degrees:{
-      type:  Array,
+    degrees: {
+      type: Array,
       required: true,
     },
+
+    specialties: {
+      type: Array,
+    },
+
     rib: {
       type: String,
       required: true,
     },
-    
+
   },
   { timestamps: true }
 );

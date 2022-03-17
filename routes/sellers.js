@@ -57,7 +57,7 @@ router.post("/register", [auth, sellerValidator], (req, res) => {
   }
 });
 
-
+//get connected seller
 router.get("/getcurrentseller", [auth, verifyTokenSeller], async (req, res) => {
   try {
     const seller = await Seller.findOne({ user: req.user._id }).populate("user");

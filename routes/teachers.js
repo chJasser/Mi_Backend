@@ -2,62 +2,80 @@ var express = require("express");
 const { validationResult } = require("express-validator");
 var router = express.Router();
 const Teacher = require("../models/teacher");
-const { auth, mulerUploadPdf } = require("../lib/utils");
+const { auth, mulerUploadPdf, issueJWT } = require("../lib/utils");
 const { teacherValidator } = require("../validators/teacherValidator");
-const { verifyTokenAdmin ,verifyTokenTeacher} = require("../middleware/verifyToken");
+const { verifyTokenAdmin, verifyTokenTeacher } = require("../middleware/verifyToken");
+
 
 router.post("/register", [auth], mulerUploadPdf.array("files"), (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.json({ errors: errors.array() });
-  }
-  let filesarray = [];
-  req.files.forEach((element) => {
-    filesarray.push(element.path);
-  });
-
-  const newTeacher = new Teacher({
-    about: req.body.about,
-    degrees: filesarray,
-    rib: req.body.rib,
-    user: req.user._id,
-  });
-  Teacher.findOne({ user: req.user._id })
-    .then((teacher) => {
-      if (teacher) {
-        return res
-          .status(500)
-          .json({ success: false, message: "Account already exists !" });
-      } else {
-        newTeacher.save((err, newTeacher) => {
-          if (err) {
-            res.status(500).json({ success: false, message: err });
-            return;
-          }
-          User.findByIdAndUpdate(
-            req.user._id,
-            { $addToSet: { role: "teacher" } },
-            { useFindAndModify: false },
-            (err, data) => {
-              if (err) {
-                return res.status(500).json({ success: false, message: err });
-              } else {
-                return res
-                  .status(200)
-                  .json({
-                    success: true,
-                    message: "Account was registered successfully !",
-                  });
-              }
-            }
-          );
-        });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
+  if (errors.array().length > 0) {
+    res.status(500).json({ errors: errors.array() });
+  } else {
+    let filesarray = [];
+    req.files.forEach((element) => {
+      filesarray.push(element.path);
     });
+
+    const newTeacher = new Teacher({
+      about: req.body.about,
+      degrees: filesarray,
+      rib: req.body.rib,
+      specialties: req.body.specialties,
+      user: req.user._id,
+    });
+    Teacher.findOne({ user: req.user._id })
+      .then((teacher) => {
+        if (teacher) {
+          return res
+            .status(500)
+            .json({ success: false, message: "Account already exists !" });
+        } else {
+          newTeacher.save((err, newTeacher) => {
+            if (err) {
+              res.status(500).json({ success: false, message: err.message });
+              return;
+            }
+            User.findByIdAndUpdate(
+              req.user._id,
+              { $addToSet: { role: "teacher" } },
+              { new: true },
+              (err, data) => {
+                if (err) {
+                  return res.status(500).json({ success: false, message: err.message });
+                } else {
+                  const userToken = issueJWT(data);
+                  return res.status(200).json({
+                    success: true,
+                    message: "Account was registered successfully. We will get back for you",
+                    token: userToken.token,
+                  });
+                }
+              }
+            );
+          });
+        }
+      })
+      .catch((err) => {
+        return res.status(500).json({ success: false, message: err });
+      });
+  }
 });
+
+
+// get connected teacher
+router.get("/getcurrentteacher", [auth, verifyTokenTeacher], async (req, res) => {
+  try {
+    const teacher = await Teacher.findOne({ user: req.user._id }).populate("user");
+    if (!teacher) {
+      return res.status(500).json({ teacher: null });;
+    }
+    return res.status(200).json({ teacher: teacher });
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+});
+
 
 /* GET blocked teachers . */
 router.get("/blocked-teachers", [auth, verifyTokenAdmin], async (req, res) => {
