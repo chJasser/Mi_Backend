@@ -48,7 +48,7 @@ const ProductSchema = new Schema(
 
     reference: {
       type: String,
-      maxLength: 25,
+      //maxLength: 25,
     },
     state: {
       type: String,
@@ -67,7 +67,9 @@ const ProductSchema = new Schema(
       type:mongoose.Schema.Types.ObjectId,
       ref:"like",
     },
+   
 
+    
 
     productImage: 
       [

@@ -66,7 +66,7 @@ const chapterRouter = require("./routes/chapters");
 const courseCommentsRouter = require("./routes/courseComments");
 const courseRouter = require("./routes/courses");
 const invoiceDetailsRouter = require("./routes/invoiceDetails");
-const productImagesRouter = require("./routes/productImages");
+//const productImagesRouter = require("./routes/productImages");
 const invoiceRouter = require("./routes/invoices");
 const productReviewsRouter = require("./routes/productReviews");
 const productRouter = require("./routes/products");
@@ -144,7 +144,7 @@ app.use("/chapters", chapterRouter);
 app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
-app.use("/productImages", productImagesRouter);
+//app.use("/productImages", productImagesRouter);
 app.use("/users", usersRouter);
 app.use("/uploads", express.static("uploads"));
 /*
