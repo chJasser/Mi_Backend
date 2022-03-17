@@ -7,16 +7,72 @@ const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
 
+//Search By Label
+// router.get("/searching", (req, res) => {
+
+//   var { label, category, marque, minPrice, maxPrice, reference, state, type } = req.query
+//   // if(label)
+//   //   var label = req.query.label
+//   // if(req.query.category)
+//   //   var category = req.query.category
+//   // else
+//   //   category = req.query.
+//   // var marque = req.query.marque
+//   // var minPrice = req.query.minPrice
+//   // var maxPrice = req.query.maxPrice
+//   // var reference = req.query.reference
+//   // var state = req.query.state
+//   // var type = req.query.type
+//   Product.find({$or : [{label: label}, {category: category}, {marque: marque}, {reference: reference}, {state:state},{type:type}]})
+//     .then((product) => res.json(product))
+//     .catch((err) => console.log(err.message));
+// });
+
+//Search By Marque
+router.get('/marque', (req, res) => {
+  var {marque} = req.query
+  Product.find({marque: marque})
+  .then((products) => res.json(products))
+  .catch((err) => console.log(err.message));
+})
+
+//Search By price 
+router.get('/price', (req, res) => {
+  var {min , max} = req.query
+  Product.find({price: {$lte: max, $gte: min}})
+  .then((products) => res.json(products))
+  .catch((err) => console.log(err.message));
+})
+
+//Search By Label
+router.get("/search", (req, res) => {
+  var label = req.query.label
+  Product.find({label: label})
+    .then((product) => res.json(product))
+    .catch((err) => console.log(err.message));
+});
+
+//Search by Category
+router.get("/fiter", (req, res) => {
+  Product.find().then((products) => {
+    let prod = products.filter(
+      (product) => product.category == req.query.category
+    );
+    res.json(prod);
+  });
+});
+
 router.get("/filter", (req, res) => {
   var { label, category, marque, minPrice, maxPrice, reference, state, type } =
     req.body;
+  console.log(req);
 
   let Productfeilds = {};
   let minP = 0;
   let maxP = 100000;
   if (maxPrice) maxP = maxPrice;
   if (minPrice) minP = minPrice;
-  if (label) Productfeilds.label = label;
+  if (minPrice) Productfeilds.label = label;
   if (category) Productfeilds.category = category;
   if (marque) Productfeilds.marque = marque;
   if (reference) Productfeilds.reference = reference;
@@ -105,6 +161,7 @@ router.post(
       productImage: filesarray,
       discountPercent: req.body.discountPercent,
     });
+    console.log(newproduct);
 
     newproduct.save(function (err, product) {
       if (err) {
