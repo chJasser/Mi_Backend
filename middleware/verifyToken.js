@@ -1,7 +1,22 @@
 const { validatePassword } = require("../lib/utils");
 
+/**
+ *
+ *
+ */
+const teacher = "teacher";
+const admin = "admin";
+const student = "student";
+const seller = "seller";
+const verifyRoleInArray = (array, role) => {
+  return array.includes(role);
+};
+
 const verifyTokenTeacher = (req, res, next) => {
-  if (req.user.role === "teacher" || req.user.role === "admin") {
+  if (
+    verifyRoleInArray(req.user.role, teacher) ||
+    verifyRoleInArray(req.user.role, admin)
+  ) {
     next();
   } else {
     res.status(401).json({
@@ -12,7 +27,10 @@ const verifyTokenTeacher = (req, res, next) => {
 };
 
 const verifyTokenSeller = (req, res, next) => {
-  if (req.user.role === "seller" || req.user.role === "admin") {
+  if (
+    verifyRoleInArray(req.user.role, seller) ||
+    verifyRoleInArray(req.user.role, admin)
+  ) {
     next();
   } else {
     res.status(401).json({
@@ -23,7 +41,10 @@ const verifyTokenSeller = (req, res, next) => {
 };
 
 const verifyTokenStudent = (req, res, next) => {
-  if (req.user.role === "student" || req.user.role === "admin") {
+  if (
+    verifyRoleInArray(req.user.role, student) ||
+    verifyRoleInArray(req.user.role, admin)
+  ) {
     next();
   } else {
     res.status(401).json({
@@ -33,7 +54,10 @@ const verifyTokenStudent = (req, res, next) => {
   }
 };
 const verifyTokenAdmin = (req, res, next) => {
-  if (req.user.role === "admin" || req.user.role === "super_admin") {
+  if (
+    verifyRoleInArray(req.user.role, admin) ||
+    verifyRoleInArray(req.user.role, "super_admin")
+  ) {
     next();
   } else {
     res.status(401).json({
@@ -43,7 +67,7 @@ const verifyTokenAdmin = (req, res, next) => {
   }
 };
 const verifyTokenSuper = (req, res, next) => {
-  if (req.user.role === "super_admin") {
+  if (req.user.role.contains("super_admin")) {
     next();
   }
 };

@@ -3,6 +3,10 @@ var router = express.Router();
 const Product = require("../models/product");
 var { productValidator } = require("../validators/productValidator");
 const User = require("../models/user");
+const Seller = require("../models/seller");
+const Like = require("../models/like");
+const Bookmark = require("../models/bookmark");
+const ProductReview = require("../models/productReview");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
@@ -60,77 +64,90 @@ router.get("/filter", (req, res) => {
  *
  *
  */
-router.get("/", [auth], (req, res) => {
-  const {
-    label,
-    category,
-    marque,
-    minPrice,
-    maxPrice,
-    reference,
-    state,
-    type,
-  } = req.body;
-  if (req.user.role == "seller") Productfeilds.seller = req.user._id;
-  Productfeilds.user = req.user._id;
-  let Productfeilds = {};
-  let minP = 0;
-  let maxP = 100000;
-  if (maxPrice) maxP = maxPrice;
-  if (minPrice) minP = minPrice;
-  if (label) Productfeilds.label = label;
-  if (category) Productfeilds.category = category;
-  if (marque) Productfeilds.marque = marque;
-  if (reference) Productfeilds.reference = reference;
-  if (state) Productfeilds.state = state;
-  if (type) Productfeilds.type = type;
+//get user products
 
-  if (!Productfeilds) {
-    Product.find().then((products) => res.json(products));
+router.get("/my-products", [auth], async (req, res) => {
+  const seller = await Seller.findOne().where("user").equals(req.user.id);
+  if (!seller) {
+    res.status(500).json({
+      success: false,
+      message: "can't find a seller account related to this user",
+    });
   } else {
-    Product.find(Productfeilds)
-      .where("price")
-      .gte(minP)
-      .lte(maxP)
-      .then((result) => {
-        res.status(200).json({ products: result });
-      });
+    const {
+      label,
+      category,
+      marque,
+      minPrice,
+      maxPrice,
+      reference,
+      state,
+      type,
+    } = req.body;
+    let Productfeilds = {};
+    Productfeilds.seller = seller._id;
+    let minP = 0;
+    let maxP = 100000;
+    if (maxPrice) maxP = maxPrice;
+    if (minPrice) minP = minPrice;
+    if (label) Productfeilds.label = label;
+    if (category) Productfeilds.category = category;
+    if (marque) Productfeilds.marque = marque;
+    if (reference) Productfeilds.reference = reference;
+    if (state) Productfeilds.state = state;
+    if (type) Productfeilds.type = type;
+
+    if (!Productfeilds) {
+      Product.find().then((products) => res.json(products));
+    } else {
+      Product.find(Productfeilds)
+        .where("price")
+        .gte(minP)
+        .lte(maxP)
+        .then((result) => {
+          res.status(200).json({ products: result });
+        });
+    }
   }
 });
 
 router.post(
-  "/addproduct",
+  "/add-product",
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.json({ errors: errors.array() });
+  async (req, res) => {
+    const seller = Seller.findOne().where("user").equals(req.user.id);
+    if (!seller) {
+      res.status(500).json({
+        success: false,
+        message: "can't find a seller account related to this user",
+      });
+    } else {
+      let filesarray = [];
+      req.files.forEach((element) => {
+        filesarray.push(element.path);
+      });
+
+      const newproduct = new Product({
+        label: req.body.label,
+        category: req.body.category,
+        marque: req.body.marque,
+        price: req.body.price,
+        reference: req.body.reference,
+        state: req.body.state,
+        type: req.body.type,
+        seller: seller.id,
+        productImage: filesarray,
+        discountPercent: req.body.discountPercent,
+      });
+
+      newproduct.save(function (err, product) {
+        if (err) {
+          console.log(err.message);
+        }
+        res.json(product);
+      });
     }
-    let filesarray = [];
-    req.files.forEach((element) => {
-      filesarray.push(element.path);
-    });
-
-    const newproduct = new Product({
-      label: req.body.label,
-      category: req.body.category,
-      marque: req.body.marque,
-      price: req.body.price,
-      reference: req.body.reference,
-      state: req.body.state,
-      type: req.body.type,
-      seller: req.user._id,
-      productImage: filesarray,
-      discountPercent: req.body.discountPercent,
-    });
-
-    newproduct.save(function (err, product) {
-      if (err) {
-        console.log(err.message);
-      }
-      res.json(product);
-    });
   }
 );
 router.get("/getrating/:id",(req,res)=>{
@@ -273,60 +290,293 @@ newrateuser.save(newrateuser,(err,savedrate)=>{
 
 //
 router.put(
-  "/:id",
+  "/update-product/:id",
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
-  (req, res) => {
-    let filesarray = [];
+  async (req, res) => {
+    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    if (!seller) {
+      res.status(500).json({
+        success: false,
+        message: "can't find a seller account related to this user",
+      });
+    } else {
+      let filesarray = [];
 
-    req.files.forEach((element) => {
-      filesarray.push(element.path);
-    });
-    const { label, category, marque, price, reference, state, type } = req.body;
-    let Productfeilds = {};
-    if (label) Productfeilds.label = label;
-    if (category) Productfeilds.category = category;
-    if (marque) Productfeilds.marque = marque;
-    if (price) Productfeilds.price = price;
-    if (reference) Productfeilds.reference = reference;
-    if (state) Productfeilds.state = state;
-    if (type) Productfeilds.type = type;
-    if (req.files) Productfeilds.productImage = filesarray;
+      req.files.forEach((element) => {
+        filesarray.push(element.path);
+      });
+      const { label, category, marque, price, reference, state, type } =
+        req.body;
+      let Productfeilds = {};
+      if (label) Productfeilds.label = label;
+      if (category) Productfeilds.category = category;
+      if (marque) Productfeilds.marque = marque;
+      if (price) Productfeilds.price = price;
+      if (reference) Productfeilds.reference = reference;
+      if (state) Productfeilds.state = state;
+      if (type) Productfeilds.type = type;
+      if (req.files) Productfeilds.productImage = filesarray;
 
-    Product.findById(req.params.id)
-      .then((product) => {
-        if (!product) {
-          return res.json({ msg: "product not found" });
-        } else if (product.seller.toString() != req.user._id) {
-          res.json({ msg: "Noth authorized" });
-        } else {
-          Product.findByIdAndUpdate(
-            req.params.id,
-            { $set: Productfeilds },
-            (err, data) => {
-              res.json(data);
-            }
-          );
-        }
-      })
-      .catch((err) => console.log(err.message));
+      Product.findById(req.params.id)
+        .then((product) => {
+          if (!product) {
+            return res.json({ msg: "product not found" });
+          } else if (product.seller.toString() != seller.id) {
+            return res.status(500).json({
+              success: false,
+              message: "product not related to the user !",
+            });
+          } else {
+            Product.findByIdAndUpdate(
+              req.params.id,
+              { $set: Productfeilds },
+              (err, data) => {
+                return res.status(200).json({
+                  success: true,
+                  message: "product updated",
+                });
+              }
+            );
+          }
+        })
+        .catch((err) => console.log(err.message));
+    }
   }
 );
 
-router.delete("/:id", [auth, verifyTokenSeller], (req, res) => {
-  Product.findById(req.params.id)
-    .then((product) => {
-      if (!product) {
-        return res.json({ msg: "product not found" });
-      } else if (product.seller.toString() != req.user._id) {
-        res.json({ msg: "Noth authorized" });
-      } else {
-        Product.findByIdAndDelete(req.params.id, (err, data) => {
-          res.json({ msg: "Product Deleted!" });
+router.delete(
+  "/delete-product/:id",
+  [auth, verifyTokenSeller],
+  async (req, res) => {
+    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    if (!seller) {
+      res.status(500).json({
+        success: false,
+        message: "can't find a seller account related to this user",
+      });
+    } else {
+      Product.findById(req.params.id)
+        .then((product) => {
+          if (!product) {
+            return res.json({ msg: "product not found" });
+          } else if (product.seller.toString() != teacher.id) {
+            return res.status(500).json({
+              success: false,
+              message: "cant delete a product not yours",
+            });
+          } else {
+            Product.findByIdAndDelete(req.params.id, (err, data) => {
+              return res.status(500).json({
+                success: true,
+                message: "product deleted",
+              });
+            });
+          }
+        })
+        .catch((err) => console.log(err.message));
+    }
+  }
+);
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+router.put("/add-like/:productId", auth, async (req, res) => {
+  const productToBeLiked = await Product.findOne({ _id: req.params.productId });
+  const userToLikeProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeLiked || !userToLikeProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "you must be logged in and u must put a valid product id !",
+    });
+  } else {
+    const like = await Like.findOne()
+      .where("user", userToLikeProduct._id)
+      .where("product", productToBeLiked._id);
+
+    if (like) {
+      return res.status(500).json({
+        success: false,
+        message: "u already like this product !",
+      });
+    } else {
+      let newLike = new Like({
+        user: userToLikeProduct._id,
+        product: productToBeLiked._id,
+      });
+      newLike
+        .save()
+        .then(() => {
+          Product.findByIdAndUpdate({ _id: productToBeLiked._id })
+            .set("likesCount", productToBeLiked.likesCount + 1)
+            .then((nice) => {
+              return res.status(200).json({
+                success: true,
+                message: "success !",
+              });
+            })
+            .catch((error) => {
+              return res.status(500).json({
+                success: false,
+                message: error.message,
+              });
+            });
+        })
+
+        .catch((error) => {
+          return res.status(500).json({
+            success: false,
+            message: error.message,
+          });
         });
-      }
-    })
-    .catch((err) => console.log(err.message));
+    }
+  }
 });
+
+router.put("/remove-like/:productId", auth, async (req, res) => {
+  const productToBeUnLiked = await Product.findOne({
+    _id: req.params.productId,
+  });
+  const userToUnLikeProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeUnLiked || !userToUnLikeProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "something went wrong !",
+    });
+  } else {
+    const like = await Like.findOne()
+      .where("user", userToUnLikeProduct._id)
+      .where("product", productToBeUnLiked._id);
+    if (like) {
+      Like.findOneAndDelete()
+        .where("user", userToUnLikeProduct._id)
+        .then((nice) => {
+          if (nice) {
+            Product.findByIdAndUpdate({ _id: productToBeUnLiked._id })
+              .set("likesCount", productToBeUnLiked.likesCount - 1)
+              .then(() => {
+                return res.status(200).json({
+                  success: true,
+                  message: "success",
+                });
+              })
+              .catch((err) => {
+                return res.status(500).json({
+                  success: false,
+                  message: err.message,
+                });
+              });
+          } else {
+            return res.status(500).json({
+              success: false,
+              message: "something went wrong !",
+            });
+          }
+        })
+        .catch((err) => {
+          return res.status(500).json({
+            success: false,
+            message: err.message,
+          });
+        });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "this user did not like this product ",
+      });
+    }
+  }
+});
+router.put("/add-bookmark/:productId", auth, async (req, res) => {
+  const productToBeBookmarked = await Product.findOne({
+    _id: req.params.productId,
+  });
+  const userToBookmarkProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeBookmarked || !userToBookmarkProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "something went wrong !",
+    });
+  } else {
+    const bookmark = await Bookmark.findOne()
+      .where("user", userToBookmarkProduct._id)
+      .where("product", productToBeBookmarked._id);
+    if (!bookmark) {
+      const newBookmark = new Bookmark({
+        user: userToBookmarkProduct._id,
+        product: productToBeBookmarked._id,
+      });
+      await newBookmark.save((error, result) => {
+        if (error) {
+          return res.status(500).json({
+            success: false,
+            message: error.message,
+          });
+        } else {
+          return res.status(200).json({
+            success: true,
+            message: `product  ${productToBeBookmarked.label}  is bookmarked !`,
+          });
+        }
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "you already bookmarked this product",
+      });
+    }
+  }
+});
+router.put("/remove-bookmark/:productId", auth, async (req, res) => {
+  const productToBeBookmarked = await Product.findOne({
+    _id: req.params.productId,
+  });
+  const userToBookmarkProduct = await User.findOne({ _id: req.user._id });
+  if (!productToBeBookmarked || !userToBookmarkProduct) {
+    return res.status(500).json({
+      success: false,
+      message: "something went wrong !",
+    });
+  } else {
+    const bookmark = await Bookmark.findOne()
+      .where("user", userToBookmarkProduct._id)
+      .where("product", productToBeBookmarked._id);
+    if (bookmark) {
+      Bookmark.deleteOne({ _id: bookmark._id })
+        .then(() => {
+          return res.status(200).json({
+            success: true,
+            message: `product  ${productToBeBookmarked.label}  is not bookmarked anymore !`,
+          });
+        })
+        .catch((error) => {
+          return res.status(500).json({
+            success: false,
+            message: error.message,
+          });
+        });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "you already unBookmarked this product",
+      });
+    }
+  }
+});
+/**
+ *
+ *
+ *
+ *
+ *
+ */
 
 module.exports = router;

@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cookieSession = require("cookie-session");
 const cors = require("cors");
-const flash = require('connect-flash');
+const flash = require("connect-flash");
 /**
  *
  *
@@ -50,14 +50,14 @@ app.use(express.static(path.join(__dirname, "public")));
 // makes the folder public 
 app.use('/uploads', express.static('uploads'));
 /*
-**
-**
-**
-**
-***
-***
-***
-***/
+ **
+ **
+ **
+ **
+ ***
+ ***
+ ***
+ ***/
 // routes
 
 const authenticationRouter = require("./routes/authentication");
@@ -66,7 +66,6 @@ const chapterRouter = require("./routes/chapters");
 const courseCommentsRouter = require("./routes/courseComments");
 const courseRouter = require("./routes/courses");
 const invoiceDetailsRouter = require("./routes/invoiceDetails");
-//const productImagesRouter = require("./routes/productImages");
 const invoiceRouter = require("./routes/invoices");
 const productReviewsRouter = require("./routes/productReviews");
 const productRouter = require("./routes/products");
@@ -74,37 +73,36 @@ const reclamationRouter = require("./routes/reclamations");
 const resourceRouter = require("./routes/resources");
 const sellerRouter = require("./routes/sellers");
 const studentRouter = require("./routes/students");
-const superAdminRouter = require("./routes/superAdmins");
 const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
 /*
-**
-**
-**
-**
-***
-***
-***
-***/
+ **
+ **
+ **
+ **
+ ***
+ ***
+ ***
+ ***/
 /*
-**
-**
-**
-**
-***
-***
-***
-***/
+ **
+ **
+ **
+ **
+ ***
+ ***
+ ***
+ ***/
 //passport & session  config
 /*
-**
-**
-**
-**
-***
-***
-***
-***/
+ **
+ **
+ **
+ **
+ ***
+ ***
+ ***
+ ***/
 require("./middleware/passportAuth")(passport);
 app.use(
   cookieSession({
@@ -119,17 +117,17 @@ app.use(passport.session());
 app.use(flash());
 
 /*
-**
-**
-**
-**
-***
-***
-***
-***/
+ **
+ **
+ **
+ **
+ ***
+ ***
+ ***
+ ***/
 //routes
 // app.use("/auth", authRouter);
-app.use("/authentification", authenticationRouter);
+app.use("/authentication", authenticationRouter);
 app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);
 app.use("/students", studentRouter);
@@ -144,7 +142,6 @@ app.use("/chapters", chapterRouter);
 app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
-//app.use("/productImages", productImagesRouter);
 app.use("/users", usersRouter);
 app.use("/uploads", express.static("uploads"));
 /*
