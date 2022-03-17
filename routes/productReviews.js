@@ -34,6 +34,7 @@ router.put("/add-review/:productId", auth, async (req, res) => {
             { _id: productToBeReviewed.id },
             { $addToSet: { reviews: rev._id.toString() } }
           )
+            .set("reviewsCount", rev.reviewsCount + 1)
             .then(() => {
               return res.status(201).json({
                 success: true,
