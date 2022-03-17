@@ -388,7 +388,56 @@ router.delete(
  *
  *
  */
+router.get("/liked-products", auth, async (req, res) => {
+  const user = await User.findOne({ _id: req.user._id });
+  if (!user) {
+    return res.status(500).json({
+      success: false,
+      message: "you must be logged in and u must put a valid product id !",
+    });
+  }
 
+  const likes = await Like.find().where("user", user._id).populate("product");
+  if (likes) {
+    let products = [];
+    likes.forEach((like) => {
+      products.push(like.product);
+    });
+    return res.json(products);
+  } else {
+    return res.status(500).json({
+      success: false,
+      message: "no liked products",
+    });
+  }
+});
+// router.get("/verify-like/:id/:iduser", async (req, res) => {
+//   const productToBeLiked = await Product.findOne({ _id: req.params.id });
+//   const userToLikeProduct = await User.findOne({ _id: req.params.iduser });
+
+//   if (!productToBeLiked || !userToLikeProduct) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "you must be logged in and u must put a valid product id !",
+//     });
+//   } else {
+//     const like = await Like.findOne()
+//       .where("user", userToLikeProduct._id)
+//       .where("product", productToBeLiked._id);
+
+//     if (like) {
+//       return res.status(200).json({
+//         success: true,
+//         like: like,
+//       });
+//     } else {
+//       return res.status(200).json({
+//         success: false,
+//         like: null,
+//       });
+//     }
+//   }
+// });
 router.put("/add-like/:productId", auth, async (req, res) => {
   const productToBeLiked = await Product.findOne({ _id: req.params.productId });
   const userToLikeProduct = await User.findOne({ _id: req.user._id });
@@ -569,6 +618,32 @@ router.put("/remove-bookmark/:productId", auth, async (req, res) => {
         message: "you already unBookmarked this product",
       });
     }
+  }
+});
+
+router.get("/bookmarked-products", auth, async (req, res) => {
+  const user = await User.findOne({ _id: req.user._id });
+  if (!user) {
+    return res.status(500).json({
+      success: false,
+      message: "you must be logged in and u must put a valid product id !",
+    });
+  }
+
+  const bookmarks = await Bookmark.find()
+    .where("user", user._id)
+    .populate("product");
+  if (bookmarks) {
+    let products = [];
+    bookmarks.forEach((like) => {
+      products.push(like.product);
+    });
+    return res.json(products);
+  } else {
+    return res.status(500).json({
+      success: false,
+      message: "no bookmarked products",
+    });
   }
 });
 /**

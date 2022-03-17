@@ -63,7 +63,10 @@ const ProductSchema = new Schema(
       type: Number,
       default: 0,
     },
-   
+    reviewsCount: {
+      type: Number,
+      default: 0,
+    },
 
     productImage: [{ type: String, default: [] }],
 
@@ -73,6 +76,7 @@ const ProductSchema = new Schema(
         ref: "ProductReview",
       },
     ],
+
     discountPercent: {
       type: Number,
       default: 0,
