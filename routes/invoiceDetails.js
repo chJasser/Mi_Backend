@@ -40,4 +40,19 @@ router.post("/:id", (req, res) => {
     .catch((err) => console.log(err.message));
 });
 
+// Get total Price
+router.get("/total", (req, res)=>{
+  Product.find().then((products) => {
+    let total = 0;
+    let quantity = req.body.quantity;
+    products.forEach((product) => {
+      total += quantity * product.price;
+      res.json(total);
+    });
+    
+  })
+  .catch((err) => console.log(err.message));
+
+})
+
 module.exports = router;
