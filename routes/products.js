@@ -66,7 +66,7 @@ router.get('/price', (req, res) => {
   .then((products) => res.json(products))
   .catch((err) => console.log(err.message));
 })
-
+//
 //Search By Label
 router.get("/search", (req, res) => {
   var label = req.query.label
