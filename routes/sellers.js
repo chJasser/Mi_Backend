@@ -6,8 +6,7 @@ const { verifyTokenSeller } = require("../middleware/verifyToken");
 const User = require("../models/user");
 const { sellerValidator } = require("../validators/sellerValidator");
 const { validationResult } = require("express-validator");
-
-
+const Product = require("../models/product");
 router.post("/register", [auth, sellerValidator], (req, res) => {
   const errors = validationResult(req);
   if (errors.array().length > 0) {
@@ -78,5 +77,36 @@ router.get("/protected", [auth, verifyTokenSeller], (req, res, next) => {
     success: true,
     msg: "You are successfully authenticated to this route!",
   });
+});
+
+router.get("/get-liked-products", async (req, res) => {
+  const likedProducts = await Product.find().where("likesCount").gte(0);
+  if (likedProducts) {
+    res.status(200).json({
+      success: true,
+      products: likedProducts,
+    });
+  } else {
+    res.status(500).json({
+      success: false,
+      products: "no products were found",
+    });
+  }
+});
+router.get("/get-most-liked-products", async (req, res) => {
+  const mostLikedProducts = await Product.find()
+    .sort({ likesCount: "desc" })
+    .limit(10);
+  if (mostLikedProducts) {
+    res.status(200).json({
+      success: true,
+      "most liked products": mostLikedProducts,
+    });
+  } else {
+    res.status(500).json({
+      success: false,
+      products: "no products were found",
+    });
+  }
 });
 module.exports = router;

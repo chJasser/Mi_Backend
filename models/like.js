@@ -1,18 +1,16 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const likeschema = new Schema(
-{
-    count:{
-        type:Number,
-        required:true,
-    },
-    isLiked:{
-        type:Boolean,
-        default:false,
-    }
-}
-
-
-)
-module.exports = mongoose.model("like", likeschema);
+const LikeSchema = new Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
+  },
+});
+module.exports = mongoose.model("like", LikeSchema);

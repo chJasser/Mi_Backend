@@ -28,7 +28,7 @@ router.post("/:id", (req, res) => {
         user: Inv.user,
         total: Inv.total,
         discount: Inv.discount,
-      });
+      });  
 
       newInvoice.save((err, iv) => {
         if (err) {

@@ -48,7 +48,7 @@ const ProductSchema = new Schema(
 
     reference: {
       type: String,
-      maxLength: 25,
+      //maxLength: 25,
     },
     state: {
       type: String,
@@ -59,36 +59,28 @@ const ProductSchema = new Schema(
       enum: ["instrument", "gear"],
       default: "instrument",
     },
-    bookmark:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"bookmark",
+    likesCount: {
+      type: Number,
+      default: 0,
     },
-    like:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"like",
+    reviewsCount: {
+      type: Number,
+      default: 0,
     },
 
+    productImage: [{ type: String, default: [] }],
 
-    productImage: 
-      [
-        {type:String,
-        default:[]
-        },
-      ]
-      
-      ,
-    
-    
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "ProductReview",
       },
     ],
+
     discountPercent: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   { timestamps: true }
 );
