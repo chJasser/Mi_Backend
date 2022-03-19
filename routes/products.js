@@ -193,6 +193,7 @@ router.post(
         state: req.body.state,
         type: req.body.type,
         seller: seller.id,
+        description:req.body.description,
         productImage: filesarray,
         discountPercent: req.body.discountPercent,
       });
@@ -200,8 +201,11 @@ router.post(
       newproduct.save(function (err, product) {
         if (err) {
           console.log(err.message);
+          res.json({ success: false, message:err.message });
+
         }
-        res.json(product);
+        res.json( {success: true,
+                    message: "product is added with success",});
       });
     }
   }
@@ -362,7 +366,7 @@ router.put(
       req.files.forEach((element) => {
         filesarray.push(element.path);
       });
-      const { label, category, marque, price, reference, state, type } =
+      const { label, category, marque, price, reference, state, type,description } =
         req.body;
       let Productfeilds = {};
       if (label) Productfeilds.label = label;
@@ -372,6 +376,7 @@ router.put(
       if (reference) Productfeilds.reference = reference;
       if (state) Productfeilds.state = state;
       if (type) Productfeilds.type = type;
+      if(description)Productfeilds.description=description;
       if (req.files) Productfeilds.productImage = filesarray;
 
       Product.findById(req.params.id)
