@@ -32,10 +32,14 @@ router.put("/add-review/:productId", auth, async (req, res) => {
         .then((rev) => {
           Product.findOneAndUpdate(
             { _id: productToBeReviewed.id },
-            { $addToSet: { reviews: rev._id.toString() } }
+            {
+              $addToSet: { reviews: rev._id.toString() },
+              $inc: { reviewsCount: 1 },
+            }
           )
-            .set("reviewsCount", rev.reviewsCount + 1)
-            .then(() => {
+
+            .then((product) => {
+              console.log(product.reviewCount);
               return res.status(201).json({
                 success: true,
                 review: "review Added successfully",
@@ -68,7 +72,7 @@ router.get("/get-prod-reviews/:idProduct", (req, res) => {
     .exec((err, data) => {
       if (err) return res.status(500).json({ error: err });
       return res.status(200).json({
-        success: false,
+        success: true,
         reviews: data.reviews,
       });
     });
