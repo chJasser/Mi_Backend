@@ -311,7 +311,7 @@ router.get(
       User.findOne({ email: email }).then((match, noMatch) => {
         if (match) {
           const accessToken = issueJWT(match);
-          res.redirect("http://localhost:3000/?token=" + accessToken.token);
+          res.redirect("http://localhost:3000/mi/?token=" + accessToken.token);
         } else {
           const { familyName, givenName } = req.user.name;
           let newUser = new User({
@@ -330,7 +330,7 @@ router.get(
             } else {
               const tokenForNewUser = issueJWT(done);
               res.redirect(
-                "http://localhost:3000/passport/register/?id=" +
+                "http://localhost:3000/mi/passport/register/?id=" +
                 done._id +
                 "&token=" +
                 tokenForNewUser.token
@@ -347,7 +347,7 @@ router.get(
 
 router.get("/logout", (req, res) => {
   req.logout();
-  res.redirect("http://localhost:3000");
+  res.redirect("http://localhost:3000/mi");
 });
 
 /**
@@ -380,7 +380,7 @@ router.get(
       User.findOne({ email: email }).then((match, noMatch) => {
         if (match) {
           const accessToken = issueJWT(match);
-          res.redirect("http://localhost:3000/?token=" + accessToken.token);
+          res.redirect("http://localhost:3000/mi/?token=" + accessToken.token);
         } else {
           const { familyName, givenName } = req.user.name;
           let newUser = new User({
@@ -399,7 +399,7 @@ router.get(
               // built-in utility
               const tokenForNewUser = issueJWT(done);
               res.redirect(
-                "http://localhost:3000/passport/register/?id=" +
+                "http://localhost:3000/mi/passport/register/?id=" +
                 done._id +
                 "&token=" +
                 tokenForNewUser.token
@@ -436,7 +436,7 @@ router.get(
       User.findOne({ email: email }).then((match, noMatch) => {
         if (match) {
           const accessToken = issueJWT(match);
-          res.redirect("http://localhost:3000/?token=" + accessToken.token);
+          res.redirect("http://localhost:3000/mi/?token=" + accessToken.token);
         } else {
           let newUser = new User({
             userName: req.user.username,
@@ -454,7 +454,7 @@ router.get(
             } else {
               const tokenForNewUser = issueJWT(done);
               res.redirect(
-                "http://localhost:3000/passport/register/?id=" +
+                "http://localhost:3000/mi/passport/register/?id=" +
                 done._id +
                 "&token=" +
                 tokenForNewUser.token
@@ -520,12 +520,14 @@ router.put("/reset", async (req, res) => {
             User.findByIdAndUpdate(
               user._id,
               { $set: { password: hashedPassword, resetPasswordCode: null } },
-              { useFindAndModify: false },
+              { new: true },
               (err, data) => {
                 if (err) {
                   console.error(err);
                 } else {
+                  const userToken = issueJWT(data);
                   res.status(200).json({
+                    token: userToken.token,
                     success: true,
                     message: "your password has been updated",
                   });
