@@ -191,9 +191,7 @@ router.put("/resetpassword/:email", async (req, res) => {
         if (err) {
           console.error(err);
         } else {
-          res.send({
-            message: "Please check your email to reset your password",
-          });
+          res.status(200).json({ success: true, email: data.email })
           resetPassword(
             user.lastName + " " + user.firstName,
             user.email,
@@ -333,9 +331,9 @@ router.get(
               const tokenForNewUser = issueJWT(done);
               res.redirect(
                 "http://localhost:3000/passport/register/?id=" +
-                  done._id +
-                  "&token=" +
-                  tokenForNewUser.token
+                done._id +
+                "&token=" +
+                tokenForNewUser.token
               );
             }
           });
@@ -402,9 +400,9 @@ router.get(
               const tokenForNewUser = issueJWT(done);
               res.redirect(
                 "http://localhost:3000/passport/register/?id=" +
-                  done._id +
-                  "&token=" +
-                  tokenForNewUser.token
+                done._id +
+                "&token=" +
+                tokenForNewUser.token
               );
             }
           });
@@ -457,9 +455,9 @@ router.get(
               const tokenForNewUser = issueJWT(done);
               res.redirect(
                 "http://localhost:3000/passport/register/?id=" +
-                  done._id +
-                  "&token=" +
-                  tokenForNewUser.token
+                done._id +
+                "&token=" +
+                tokenForNewUser.token
               );
             }
           });
