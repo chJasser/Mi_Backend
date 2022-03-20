@@ -390,7 +390,7 @@ router.put(
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
   async (req, res) => {
-    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    const seller = await Seller.findOne().where("user").equals(req.user._id);
     if (!seller) {
       res.status(500).json({
         success: false,
@@ -446,7 +446,7 @@ router.delete(
   "/delete-product/:id",
   [auth, verifyTokenSeller],
   async (req, res) => {
-    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    const seller = await Seller.findOne().where("user").equals(req.user._id);
     if (!seller) {
       res.status(500).json({
         success: false,
@@ -457,13 +457,15 @@ router.delete(
         .then((product) => {
           if (!product) {
             return res.json({ msg: "product not found" });
-          } else if (product.seller.toString() != teacher.id) {
+          } else if (product.seller.toString() != seller._id) {
             return res.status(500).json({
               success: false,
               message: "cant delete a product not yours",
             });
           } else {
             Product.findByIdAndDelete(req.params.id, (err, data) => {
+
+              
               return res.status(500).json({
                 success: true,
                 message: "product deleted",
