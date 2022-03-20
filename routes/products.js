@@ -17,6 +17,17 @@ const Rateuser = require("../models/rateuser");
 
 const user = require("../models/user");
 
+router.get("/seller/:id",(req,res)=>{
+  Seller.findById(req.params.id).then((seller)=>{
+   User.findById(seller.user).then((user)=>{
+     res.json(user);
+   })
+  }).catch((err)=>{
+    res.json({msg:err.message})
+  })
+}
+)
+
 router.get("/product/:id",(req,res)=>{
 Product.findById(req.params.id).then((product)=>{
   if(!product){
@@ -171,43 +182,68 @@ router.post(
   "/add-product",
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
-  async (req, res) => {
-    const seller = Seller.findOne().where("user").equals(req.user.id);
-    if (!seller) {
-      res.status(500).json({
-        success: false,
-        message: "can't find a seller account related to this user",
-      });
-    } else {
-      let filesarray = [];
-      req.files.forEach((element) => {
-        filesarray.push(element.path);
-      });
+   (req, res) => {
+    Seller.findOne({user:req.user._id}).then((sellers)=>{
+      
+      if (!sellers) {
+        res.status(500).json({
+          success: false,
+          message: "can't find a seller account related to this user",
+        });
+      }else {
+        let filesarray = [];
+        req.files.forEach((element) => {
+          filesarray.push(element.path);
+        });
+  
+        const newproduct = new Product({
+          label: req.body.label,
+          category: req.body.category,
+          marque: req.body.marque,
+          price: req.body.price,
+          reference: req.body.reference,
+          state: req.body.state,
+          type: req.body.type,
+          seller: sellers._id,
+          description:req.body.description,
+          productImage: filesarray,
+          discountPercent: req.body.discountPercent,
+        });
+  
+        newproduct.save(function (err, product) {
+          if (err) {
+            console.log(err.message);
+            res.json({ success: false, message:err.message });
+  
+          }
+          res.json( {success: true,
+                      message: "product is added with success",});
+                      
+                        
+                          newrating =new Rate({
+                            nbrpeople:1,
+                            rating:1,
+                            product:product._id,
+                          
+                            })
+                            newrating.save(newrating).then((savedrating)=>{
+                              
+                           
+                             })
+                        
+                      
+                      
+                   
+        });
+      }
 
-      const newproduct = new Product({
-        label: req.body.label,
-        category: req.body.category,
-        marque: req.body.marque,
-        price: req.body.price,
-        reference: req.body.reference,
-        state: req.body.state,
-        type: req.body.type,
-        seller: seller.id,
-        description:req.body.description,
-        productImage: filesarray,
-        discountPercent: req.body.discountPercent,
-      });
-
-      newproduct.save(function (err, product) {
-        if (err) {
-          console.log(err.message);
-          res.json({ success: false, message:err.message });
-
-        }
-        res.json( {success: true,
-                    message: "product is added with success",});
-      });
-    }
+    }).catch((err)=>{
+      if (err){
+        res.json({msg:err.message});
+      }
+    });
+    
+   
   }
 );
 router.get("/getrating/:id",(req,res)=>{
