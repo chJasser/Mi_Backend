@@ -47,6 +47,9 @@ const UserSchema = new Schema(
       type: Number,
       maxLength: 8,
     },
+    aboutMe: {
+      type: String,
+    },
     role: {
       type: [String],
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],

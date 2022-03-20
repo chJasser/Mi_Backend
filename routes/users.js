@@ -57,6 +57,20 @@ router.get("/email/:email", (req, res) => {
   });
 });
 
+
+
+router.get("/logedinuser", [auth], async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, user: null, message: "there is no user with this ID" });
+    }
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    res.status(404).json(error.message);
+  }
+});
+
 /* GET user by id . */
 router.get("/:id", async (req, res) => {
   try {
@@ -95,7 +109,6 @@ router.put(
   multerUpload.single("picture"),
 
   async (req, res) => {
-    console.log(req.params.id);
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
       return res.status(500).json("Object missing");
     } else {
@@ -130,54 +143,68 @@ router.put(
 
 
 
-// router.put(
-//   "/updateProfile/:id",
-//   auth,
-//   multerUpload.single("picture"),
-//   async (req, res) => {
-//     try {
-//       // if (req.user.id === req.params.id) {
-//       const {
-//         firstName,
-//         lastName,
-//         email,
-//         birthDate,
-//         sex,
-//         phoneNumber,
-//         address,
-//         // password,
-//       } = req.body;
-//       let userFields = {};
-//       // let hashedPassword = await bcrypt.hash(password, 10);
-//       if (firstName) userFields.firstName = firstName;
-//       if (lastName) userFields.lastName = lastName;
-//       if (email) userFields.email = email;
-//       if (birthDate) userFields.birthDate = birthDate;
-//       if (sex) userFields.sex = sex;
-//       if (phoneNumber) userFields.phoneNumber = phoneNumber;
-//       if (address) userFields.address = address;
-//       // if (password) userFields.password = hashedPassword;
-//       if (req.file) userFields.profilePicture = req.file.path;
-//       User.findByIdAndUpdate(req.params.id, {
-//         $set: userFields,
-//       })
-//         .then((result) => {
-//           res.status(200).json("updated successfully !");
-//         })
-//         .catch((error) => {
-//           return res.status(500).json(error.message);
-//         });
-//       // } else {
-//       // res
-//       //   .status(400)
-//       //   .json(
-//       //     "not the same id that you logged in with ... something went wrong !"
-//       //   );
-//       // }
-//     } catch (error) {
-//       return res.status(500).json(error.message);
-//     }
-//   }
-// );
+router.put(
+  "/updateprofile/:id",
+  auth,
+  async (req, res) => {
+    try {
+      if (req.user._id == req.params.id) {
+        let user = await User.findOne({ email: req.body.email });
+        if (user) {
+          if (user._id.toString() !== req.params.id) {
+
+            return res.status(500).json({ sucess: false, message: "Email already used !" })
+          }
+        }
+
+        const {
+          firstName,
+          userName,
+          lastName,
+          email,
+          birthDate,
+          phoneNumber,
+          address,
+          password,
+          aboutMe
+        } = req.body;
+
+        let userFields = {};
+        if (password) {
+          hashedPassword = await bcrypt.hash(password, 10);
+          userFields.password = hashedPassword;
+        }
+        // let hashedPassword = await bcrypt.hash(password, 10);
+        if (firstName) userFields.firstName = firstName;
+        if (userName) userFields.userName = userName;
+        if (lastName) userFields.lastName = lastName;
+        if (email) userFields.email = email;
+        if (birthDate) userFields.birthDate = birthDate;
+        if (phoneNumber) userFields.phoneNumber = phoneNumber;
+        if (aboutMe) userFields.aboutMe = aboutMe;
+        if (address) userFields.address = address;
+
+        User.findByIdAndUpdate(req.params.id, {
+          $set: userFields,
+        })
+          .then((result) => {
+            res.status(200).json({ success: true, message: "updated successfully !" });
+          })
+          .catch((error) => {
+            return res.status(500).json({ success: false, message: error.message });
+          });
+
+      } else {
+        res
+          .status(500)
+          .json(
+            { success: false, message: "not the same id that you logged in with ... something went wrong !" }
+          );
+      }
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+);
 
 module.exports = router;
