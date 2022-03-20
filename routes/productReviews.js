@@ -42,7 +42,7 @@ router.put("/add-review/:productId", auth, async (req, res) => {
               console.log(product.reviewCount);
               return res.status(201).json({
                 success: true,
-                review: "review Added successfully",
+                review: rev,
               });
             })
             .catch((error) => {
