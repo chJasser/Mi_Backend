@@ -32,6 +32,31 @@ router.get("/product/:id", (req, res) => {
       res.status(500).json(err);
     });
 });
+router.get("/seller/:id", (req, res) => {
+  Seller.findById(req.params.id)
+    .then((seller) => {
+      User.findById(seller.user).then((user) => {
+        res.json(user);
+      });
+    })
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
+
+router.get("/product/:id", (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "product not found" });
+      } else {
+        res.status(200).json(product);
+      }
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
 
 //Search By Label
 // router.get("/searching", (req, res) => {
@@ -174,39 +199,58 @@ router.post(
   "/add-product",
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
-  async (req, res) => {
-    const seller = Seller.findOne().where("user").equals(req.user.id);
-    if (!seller) {
-      res.status(500).json({
-        success: false,
-        message: "can't find a seller account related to this user",
-      });
-    } else {
-      let filesarray = [];
-      req.files.forEach((element) => {
-        filesarray.push(element.path);
-      });
+  (req, res) => {
+    Seller.findOne({ user: req.user._id })
+      .then((sellers) => {
+        if (!sellers) {
+          res.status(500).json({
+            success: false,
+            message: "can't find a seller account related to this user",
+          });
+        } else {
+          let filesarray = [];
+          req.files.forEach((element) => {
+            filesarray.push(element.path);
+          });
 
-      const newproduct = new Product({
-        label: req.body.label,
-        category: req.body.category,
-        marque: req.body.marque,
-        price: req.body.price,
-        reference: req.body.reference,
-        state: req.body.state,
-        type: req.body.type,
-        seller: seller._id,
-        productImage: filesarray,
-        discountPercent: req.body.discountPercent,
-      });
+          const newproduct = new Product({
+            label: req.body.label,
+            category: req.body.category,
+            marque: req.body.marque,
+            price: req.body.price,
+            reference: req.body.reference,
+            state: req.body.state,
+            type: req.body.type,
+            seller: sellers._id,
+            description: req.body.description,
+            productImage: filesarray,
+            discountPercent: req.body.discountPercent,
+          });
 
-      newproduct.save(function (err, product) {
-        if (err) {
-          console.log(err.message);
+          newproduct.save(function (err, product) {
+            if (err) {
+              console.log(err.message);
+              res.json({ success: false, message: err.message });
+            }
+            res.json({
+              success: true,
+              message: "product is added with success",
+            });
+
+            newrating = new Rate({
+              nbrpeople: 1,
+              rating: 1,
+              product: product._id,
+            });
+            newrating.save(newrating).then((savedrating) => {});
+          });
         }
-        res.json(product);
+      })
+      .catch((err) => {
+        if (err) {
+          res.json({ msg: err.message });
+        }
       });
-    }
   }
 );
 router.get("/getrating/:id", (req, res) => {
@@ -338,8 +382,16 @@ router.put(
       req.files.forEach((element) => {
         filesarray.push(element.path);
       });
-      const { label, category, marque, price, reference, state, type } =
-        req.body;
+      const {
+        label,
+        category,
+        marque,
+        price,
+        reference,
+        state,
+        type,
+        description,
+      } = req.body;
       let Productfeilds = {};
       if (label) Productfeilds.label = label;
       if (category) Productfeilds.category = category;
@@ -348,6 +400,7 @@ router.put(
       if (reference) Productfeilds.reference = reference;
       if (state) Productfeilds.state = state;
       if (type) Productfeilds.type = type;
+      if (description) Productfeilds.description = description;
       if (req.files) Productfeilds.productImage = filesarray;
 
       Product.findById(req.params.id)
