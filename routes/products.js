@@ -10,8 +10,10 @@ const ProductReview = require("../models/productReview");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
-const { TrustProductsEvaluationsContext } = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
-const Rate =require("../models/rate");
+const {
+  TrustProductsEvaluationsContext,
+} = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
+const Rate = require("../models/rate");
 
 const Rateuser = require("../models/rateuser");
 
@@ -28,18 +30,21 @@ router.get("/seller/:id",(req,res)=>{
 }
 )
 
-router.get("/product/:id",(req,res)=>{
-Product.findById(req.params.id).then((product)=>{
-  if(!product){
-    res.status(404).send({message:'product not found'})
-  } else{
-res.status(200).json(product)}
 
-}).catch((err)=>{
-res.status(500).json(err);
-})
-})
 
+router.get("/product/:id", (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "product not found" });
+      } else {
+        res.status(200).json(product);
+      }
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
 
 //Search By Label
 // router.get("/searching", (req, res) => {
@@ -63,25 +68,25 @@ res.status(500).json(err);
 // });
 
 //Search By Marque
-router.get('/marque', (req, res) => {
-  var {marque} = req.query
-  Product.find({marque: marque})
-  .then((products) => res.json(products))
-  .catch((err) => console.log(err.message));
-})
+router.get("/marque", (req, res) => {
+  var { marque } = req.query;
+  Product.find({ marque: marque })
+    .then((products) => res.json(products))
+    .catch((err) => console.log(err.message));
+});
 
-//Search By price 
-router.get('/price', (req, res) => {
-  var {min , max} = req.query
-  Product.find({price: {$lte: max, $gte: min}})
-  .then((products) => res.json(products))
-  .catch((err) => console.log(err.message));
-})
+//Search By price
+router.get("/price", (req, res) => {
+  var { min, max } = req.query;
+  Product.find({ price: { $lte: max, $gte: min } })
+    .then((products) => res.json(products))
+    .catch((err) => console.log(err.message));
+});
 //
 //Search By Label
 router.get("/search", (req, res) => {
-  var label = req.query.label
-  Product.find({label: label})
+  var label = req.query.label;
+  Product.find({ label: label })
     .then((product) => res.json(product))
     .catch((err) => console.log(err.message));
 });
@@ -246,143 +251,116 @@ router.post(
    
   }
 );
-router.get("/getrating/:id",(req,res)=>{
-Product.findById(req.params.id).then((product)=>{
-  if(!product){
-    res.status(401).json({msg: "product not found"});
-  }
-  else{
-    Rate.find({product:req.params.id},(err,rate)=>{
-      
-      res.json(rate);
-
-    })
-  }
-})
-
-
-
-})
-///
-
-
-///
-
-
-router.put("/rating/:id",auth,(req,res)=>{
-
-Product.findById(req.params.id).then((product)=>{
-  if (!product) {
-    return res.staus(401).json({ msg: "product not found" });
-  }
-  else{
-    
-  Rateuser.findOne({user:req.user._id,product:req.params.id} ).then((rateu)=>
-    {
-    if(rateu){
-      Rateuser.findByIdAndUpdate(rateu._id,{$set:{rate:req.body.rate,}} ).then(
-      (newrate)=>{
-        
-        Rateuser.find({product:req.params.id}).then((products)=>{
-        
-          var allrating=0;
-          products.forEach((product)=>{
-           allrating+= product.rate;
-          })
-         
-         const nbr=products.length;
-        const rates=allrating/nbr;
-          var newrating ={
-            nbrpeople:nbr,
-            rating:rates,
-           
-          }
-          Rate.findOne({product:req.params.id}).then((product)=>{
-            if(!product){
-              newrating =new Rate({
-                nbrpeople:1,
-                rating:req.body.rate,
-                product:req.params.id,
-              
-                })
-                newrating.save(newrating).then((savedrating)=>{
-                  
-               
-                 })
-            }else{
-               Rate.findOneAndUpdate({product:req.params.id},{$set:newrating},(err,Rateupdated)=>{
-              res.json(Rateupdated);
-      
-      
-               })}
-          })
-        
-          
-        })
-      }
-    );
-  
-  }
-  else if(!rateu){
-  newrateuser = new Rateuser({
- user:req.user._id,
- product:req.params.id,
- rate:req.body.rate,
-
-})
-newrateuser.save(newrateuser,(err,savedrate)=>{
-  Rateuser.find({product:req.params.id}).then((products)=>{
-        
-    var allrating=0;
-    products.forEach((product)=>{
-     allrating+= product.rate;
-    })
-   
-   const nbr=products.length;
-  const rates=allrating/nbr;
-    var newrating ={
-      nbrpeople:nbr,
-      rating:rates,
-     
+router.get("/getrating/:id", (req, res) => {
+  Product.findById(req.params.id).then((product) => {
+    if (!product) {
+      res.status(401).json({ msg: "product not found" });
+    } else {
+      Rate.find({ product: req.params.id }, (err, rate) => {
+        res.json(rate);
+      });
     }
-    
-    Rate.findOne({product:req.params.id}).then((product)=>{
-      if(!product){
-        newrating =new Rate({
-          nbrpeople:1,
-          rating:req.body.rate,
-          product:req.params.id,
-        
+  });
+});
+///
+
+///
+
+router.put("/rating/:id", auth, (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        return res.staus(401).json({ msg: "product not found" });
+      } else {
+        Rateuser.findOne({ user: req.user._id, product: req.params.id })
+          .then((rateu) => {
+            if (rateu) {
+              Rateuser.findByIdAndUpdate(rateu._id, {
+                $set: { rate: req.body.rate },
+              }).then((newrate) => {
+                Rateuser.find({ product: req.params.id }).then((products) => {
+                  var allrating = 0;
+                  products.forEach((product) => {
+                    allrating += product.rate;
+                  });
+
+                  const nbr = products.length;
+                  const rates = allrating / nbr;
+                  var newrating = {
+                    nbrpeople: nbr,
+                    rating: rates,
+                  };
+                  Rate.findOne({ product: req.params.id }).then((product) => {
+                    if (!product) {
+                      newrating = new Rate({
+                        nbrpeople: 1,
+                        rating: req.body.rate,
+                        product: req.params.id,
+                      });
+                      newrating.save(newrating).then((savedrating) => {});
+                    } else {
+                      Rate.findOneAndUpdate(
+                        { product: req.params.id },
+                        { $set: newrating },
+                        (err, Rateupdated) => {
+                          res.json(Rateupdated);
+                        }
+                      );
+                    }
+                  });
+                });
+              });
+            } else if (!rateu) {
+              newrateuser = new Rateuser({
+                user: req.user._id,
+                product: req.params.id,
+                rate: req.body.rate,
+              });
+              newrateuser.save(newrateuser, (err, savedrate) => {
+                Rateuser.find({ product: req.params.id }).then((products) => {
+                  var allrating = 0;
+                  products.forEach((product) => {
+                    allrating += product.rate;
+                  });
+
+                  const nbr = products.length;
+                  const rates = allrating / nbr;
+                  var newrating = {
+                    nbrpeople: nbr,
+                    rating: rates,
+                  };
+
+                  Rate.findOne({ product: req.params.id }).then((product) => {
+                    if (!product) {
+                      newrating = new Rate({
+                        nbrpeople: 1,
+                        rating: req.body.rate,
+                        product: req.params.id,
+                      });
+                      newrating.save(newrating).then((savedrating) => {});
+                    } else {
+                      Rate.findOneAndUpdate(
+                        { product: req.params.id },
+                        { $set: newrating },
+                        (err, Rateupdated) => {
+                          res.json(Rateupdated);
+                        }
+                      );
+                    }
+                  });
+                });
+              });
+            }
           })
-          newrating.save(newrating).then((savedrating)=>{
-            
-         
-           })
-      }else{
-         Rate.findOneAndUpdate({product:req.params.id},{$set:newrating},(err,Rateupdated)=>{
-        res.json(Rateupdated);
-
-
-         })}
+          .catch((err) => {
+            res.json({ msg: err.message });
+          });
+      }
     })
-    
-  })
-
-
-
-})
- }
-}
-)  .catch((err)=>{
-  res.json({msg:err.message})
-})
-}
-   
-
-
-}).catch((err)=>{ res.json({msg:err.message})})
-
-})
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
 
 //
 router.put(
@@ -446,7 +424,7 @@ router.delete(
   "/delete-product/:id",
   [auth, verifyTokenSeller],
   async (req, res) => {
-    const seller = await Seller.findOne().where("user").equals(req.user._id);
+    const seller = await Seller.findOne().where("user", req.user.id);
     if (!seller) {
       res.status(500).json({
         success: false,
@@ -463,14 +441,59 @@ router.delete(
               message: "cant delete a product not yours",
             });
           } else {
-            Product.findByIdAndDelete(req.params.id, (err, data) => {
-
-              
-              return res.status(500).json({
-                success: true,
-                message: "product deleted",
+            Bookmark.findOneAndDelete()
+              .where("product", req.params.id)
+              .then((bookmark) => {
+                Like.findOneAndDelete()
+                  .where("product", req.params.id)
+                  .then((like) => {
+                    Rate.findOneAndDelete()
+                      .where("product", req.params.id)
+                      .then((rate) => {
+                        Rateuser.findOneAndDelete()
+                          .where("product", req.params.id)
+                          .then((rateuser) => {
+                            Product.findByIdAndDelete(req.params.id)
+                              .then((product) => {
+                                const reviews = product.reviews;
+                                reviews.forEach((review) => {
+                                  ProductReview.findByIdAndDelete(review)
+                                    .then((result) => {
+                                      return res.status(200).json({
+                                        success: true,
+                                        message: "deleted successfully !",
+                                      });
+                                    })
+                                    .catch((error) => {
+                                      return res.status(500).json({
+                                        success: false,
+                                        message: "reviews cannot be deleted !",
+                                      });
+                                    });
+                                });
+                              })
+                              .catch((error) => {
+                                return res.status(500).json({
+                                  success: false,
+                                  message: error.message,
+                                });
+                              });
+                          });
+                      })
+                      .catch((error) => {
+                        return res.status(500).json({
+                          success: false,
+                          message: error.message,
+                        });
+                      });
+                  });
+              })
+              .catch((error) => {
+                return res.status(500).json({
+                  success: false,
+                  message: error.message,
+                });
               });
-            });
           }
         })
         .catch((err) => console.log(err.message));
