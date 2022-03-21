@@ -133,7 +133,8 @@ router.put(
             );
           }
         })
-        .catch((err) => console.log(err.message));
+
+        .catch((err) => { return res.status(500).json({ success: false, message: err.message }) })
 
     }
   }
@@ -174,7 +175,6 @@ router.put(
           hashedPassword = await bcrypt.hash(password, 10);
           userFields.password = hashedPassword;
         }
-        // let hashedPassword = await bcrypt.hash(password, 10);
         if (firstName) userFields.firstName = firstName;
         if (userName) userFields.userName = userName;
         if (lastName) userFields.lastName = lastName;
