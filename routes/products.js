@@ -58,6 +58,15 @@ router.get("/product/:id", (req, res) => {
     });
 });
 
+router.get("/all-sellers", (req, res) => {
+  Seller.find().then((sellers) => res.json(sellers)).catch(err => console.log(err.message));
+});
+
+router.get("/productsPerSeller/:id", (req, res) => {
+  Product.find({seller: req.params.id}).then((products) => res.json(products.length)).catch(err => console.log(err.message));
+})
+
+
 //Search By Label
 // router.get("/searching", (req, res) => {
 
