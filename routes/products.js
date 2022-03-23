@@ -59,13 +59,16 @@ router.get("/product/:id", (req, res) => {
 });
 
 router.get("/all-sellers", (req, res) => {
-  Seller.find().then((sellers) => res.json(sellers)).catch(err => console.log(err.message));
+  Seller.find()
+    .then((sellers) => res.json(sellers))
+    .catch((err) => console.log(err.message));
 });
 
 router.get("/productsPerSeller/:id", (req, res) => {
-  Product.find({seller: req.params.id}).then((products) => res.json(products.length)).catch(err => console.log(err.message));
-})
-
+  Product.find({ seller: req.params.id })
+    .then((products) => res.json(products.length))
+    .catch((err) => console.log(err.message));
+});
 
 //Search By Label
 // router.get("/searching", (req, res) => {
@@ -273,6 +276,13 @@ router.get("/getrating/:id", (req, res) => {
     }
   });
 });
+router.get("/getratingbyuser/:id", auth, (req, res) => {
+  Rateuser.findOne({ user: req.user._id, product: req.params.id }).then(
+    (rate) => {
+      res.json(rate);
+    }
+  );
+});
 ///
 
 ///
@@ -379,7 +389,7 @@ router.put(
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
   async (req, res) => {
-    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    const seller = await Seller.findOne().where("user").equals(req.user._id);
     if (!seller) {
       res.status(500).json({
         success: false,
