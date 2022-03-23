@@ -262,6 +262,13 @@ router.get("/getrating/:id", (req, res) => {
     }
   });
 });
+router.get("/getratingbyuser/:id", auth,(req, res) => {
+  Rateuser.findOne({ user: req.user._id, product: req.params.id }).then((rate)=>{
+    res.json(rate);
+  
+  }
+  )
+});
 ///
 
 ///
