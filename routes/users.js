@@ -39,6 +39,22 @@ router.put("/block/:id", [auth, verifyTokenAdmin], async (req, res) => {
     res.json(error.message);
   }
 });
+router.put("/unblock/:id", [auth, verifyTokenAdmin], async (req, res) => {
+  try {
+    let userToBeBlocked = await User.findById(req.params.id);
+
+    if (userToBeBlocked && userToBeBlocked.role !== "admin") {
+      userToBeBlocked = await User.findByIdAndUpdate(userToBeBlocked._id, {
+        isBlocked: false,
+      });
+      return res.json("user unblocked successfully");
+    } else {
+      return res.json("you're not allowed to do that !");
+    }
+  } catch (error) {
+    res.json(error.message);
+  }
+});
 /* GET users . */
 router.get("/", [auth, verifyTokenAdmin], async (req, res) => {
   const users = await User.find({});

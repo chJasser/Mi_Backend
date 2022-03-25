@@ -13,6 +13,10 @@ const ReclamationSchema = new Schema(
       ref: "User",
       required: true,
     },
+    status: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
