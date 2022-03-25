@@ -46,13 +46,13 @@ router.get("/seller/:id", (req, res) => {
 
 router.get("/sel/:id", (req, res) => {
   Seller.findById(req.params.id)
-  .then((seller) => {
-    res.json(seller);
-  })
-  .catch((err) => {
-    res.json({ msg: err.message });
-  });
-})
+    .then((seller) => {
+      res.json(seller);
+    })
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
 
 router.get("/product/:id", (req, res) => {
   Product.findById(req.params.id)
@@ -69,16 +69,50 @@ router.get("/product/:id", (req, res) => {
 });
 
 router.get("/all-sellers", (req, res) => {
-  Seller.find().then((sellers) => res.json(sellers)).catch(err => console.log(err.message));
+  Seller.find()
+    .then((sellers) => res.json(sellers))
+    .catch((err) => console.log(err.message));
 });
 
 router.get("/NbrProductsPerSeller/:id", (req, res) => {
-  Product.find({seller: req.params.id}).then((products) => res.json(products.length)).catch(err => console.log(err.message));
-})
+  Product.find({ seller: req.params.id })
+    .then((products) => res.json(products.length))
+    .catch((err) => console.log(err.message));
+});
 
 router.get("/productsPerSeller/:id", (req, res) => {
-  Product.find({seller: req.params.id}).then((products) => res.json(products)).catch(err => console.log(err.message));
-})
+  Product.find({ seller: req.params.id })
+    .then((products) => res.json(products))
+    .catch((err) => console.log(err.message));
+});
+router.get("/productsPerSeller/:id", (req, res) => {
+  Product.find({ seller: req.params.id })
+    .then((products) => res.json(products.length))
+    .catch((err) => console.log(err.message));
+});
+
+router.get("/getproductsseller", [auth, verifyTokenSeller], (req, res) => {
+  Seller.findOne({ user: req.user._id })
+    .then((sellers) => {
+      if (!sellers) {
+        res.status(500).json({
+          success: false,
+          message: "can't find a seller account related to this user",
+        });
+      } else {
+        Product.find({ seller: sellers._id })
+          .then((products) => {
+            res.json(products);
+          })
+          .catch((err) => {
+            res.json({ msg: err.message });
+          });
+      }
+    })
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
 
 //Search By Marque
 router.get("/marque", (req, res) => {
@@ -265,6 +299,19 @@ router.get("/getrating/:id", (req, res) => {
     }
   });
 });
+router.get("/getratingbyuser/:id", auth, (req, res) => {
+  Rateuser.findOne({ user: req.user._id, product: req.params.id })
+    .then((rate) => {
+      if (rate) {
+        res.json(rate);
+      } else {
+        res.json(1);
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json(err.message);
+    });
+});
 ///
 
 ///
@@ -371,7 +418,7 @@ router.put(
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
   async (req, res) => {
-    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    const seller = await Seller.findOne().where("user").equals(req.user._id);
     if (!seller) {
       res.status(500).json({
         success: false,
