@@ -44,6 +44,16 @@ router.get("/seller/:id", (req, res) => {
     });
 });
 
+router.get("/sel/:id", (req, res) => {
+  Seller.findById(req.params.id)
+  .then((seller) => {
+    res.json(seller);
+  })
+  .catch((err) => {
+    res.json({ msg: err.message });
+  });
+})
+
 router.get("/product/:id", (req, res) => {
   Product.findById(req.params.id)
     .then((product) => {
@@ -62,31 +72,13 @@ router.get("/all-sellers", (req, res) => {
   Seller.find().then((sellers) => res.json(sellers)).catch(err => console.log(err.message));
 });
 
-router.get("/productsPerSeller/:id", (req, res) => {
+router.get("/NbrProductsPerSeller/:id", (req, res) => {
   Product.find({seller: req.params.id}).then((products) => res.json(products.length)).catch(err => console.log(err.message));
 })
 
-
-//Search By Label
-// router.get("/searching", (req, res) => {
-
-//   var { label, category, marque, minPrice, maxPrice, reference, state, type } = req.query
-//   // if(label)
-//   //   var label = req.query.label
-//   // if(req.query.category)
-//   //   var category = req.query.category
-//   // else
-//   //   category = req.query.
-//   // var marque = req.query.marque
-//   // var minPrice = req.query.minPrice
-//   // var maxPrice = req.query.maxPrice
-//   // var reference = req.query.reference
-//   // var state = req.query.state
-//   // var type = req.query.type
-//   Product.find({$or : [{label: label}, {category: category}, {marque: marque}, {reference: reference}, {state:state},{type:type}]})
-//     .then((product) => res.json(product))
-//     .catch((err) => console.log(err.message));
-// });
+router.get("/productsPerSeller/:id", (req, res) => {
+  Product.find({seller: req.params.id}).then((products) => res.json(products)).catch(err => console.log(err.message));
+})
 
 //Search By Marque
 router.get("/marque", (req, res) => {
