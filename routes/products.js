@@ -70,6 +70,31 @@ router.get("/productsPerSeller/:id", (req, res) => {
     .catch((err) => console.log(err.message));
 });
 
+router.get("/getproductsseller", [auth, verifyTokenSeller],(req,res)=>{
+  Seller.findOne({ user: req.user._id })
+  .then((sellers) => {
+    if (!sellers) {
+      res.status(500).json({
+        success: false,
+        message: "can't find a seller account related to this user",
+      });
+    } else {
+Product.find({seller:sellers._id}).then((products)=>{
+  res.json(products);
+}).catch((err)=>{
+  res.json({msg:err.message})
+})
+
+    }
+
+}).catch((err)=>{
+res.json({msg:err.message})
+
+})
+
+
+})
+
 //Search By Label
 // router.get("/searching", (req, res) => {
 
