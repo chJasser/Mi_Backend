@@ -1,12 +1,352 @@
 var express = require("express");
 var router = express.Router();
-
+const {
+  courseValidator,
+  courseUpdateValidator,
+  courseSearchValidator,
+  courseTreeValidator,
+} = require("../validators/courseValidator");
+var ObjectId = require("mongoose").Types.ObjectId;
+const { auth } = require("../lib/utils");
+const { verifyTokenTeacher } = require("../middleware/verifyToken");
 const Course = require("../models/course");
-router.get("/", (req, res) => {
-  console.log("getting courses");
-  Course.find((err, admins) => {
-    console.log(admins);
-  });
+const Teacher = require("../models/teacher");
+const Student = require("../models/student");
+const validate = require("../middleware/validation");
+const { authenticate } = require("passport");
+const course = require("../models/course");
+const teacher = require("../models/teacher");
+
+/**
+ *
+ */
+router.get("/get-courses", (req, res) => {
+  Course.aggregate()
+    .addFields({ subscribers: { $size: ["$students"] } })
+    .then((courses) => {
+      if (!courses) res.status(204).json("no content");
+      res.status(200).json(courses);
+    });
 });
+router.get("/get-course/:id", (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      success: false,
+      message: "invalid ID",
+    });
+  }
+  Course.aggregate()
+    .addFields({ subscribers: { $size: ["$students"] } })
+    .match({ _id: req.params.id })
+    .then((course) => {
+      if (!course) res.status(204).json("no content");
+      res.status(200).json(course);
+    })
+    .catch((err) => res.status(400).json(err));
+});
+
+//get courses by teacher
+router.get("/course-teacher", async (req, res) => {
+  if (!ObjectId.isValid(req.user.id)) {
+    return res.status(400).json({
+      success: false,
+      message: "invalid ID",
+    });
+  }
+  Course.aggregate()
+    .addFields({ subscribers: { $size: ["$students"] } })
+    .where("teacher")
+    .equals(req.user.id)
+    .then((result) => {
+      if (!result)
+        res.status(404).json("this teacher does not have any courses yet !");
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ success: false, error: err.message });
+    });
+});
+//add course
+router.post(
+  "/add-course",
+  auth,
+  validate(courseValidator),
+  async (req, res) => {
+    const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+    if (teacher) {
+      req.body.teacher = teacher.id;
+      new Course({ ...req.body })
+        .save()
+        .then((course) => {
+          return res.status(201).json({
+            success: true,
+            message: "courses created !",
+            course: course,
+          });
+        })
+        .catch((err) => {
+          return res.status(500).json({ success: false, message: err.message });
+        });
+    } else {
+      return res
+        .status(500)
+        .json({ success: false, message: "you're not logged in as a teacher" });
+    }
+  }
+);
+//update course
+
+router.put(
+  "/update-course/:id",
+  auth,
+  validate(courseUpdateValidator),
+  async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "invalid ID",
+      });
+    }
+    //get teacher related to the user logged in
+    const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+    if (teacher) {
+      //get Courses with the id related to the teacher
+      let courseToUpdate = await Course.findOne()
+        .where("_id")
+        .equals(req.params.id);
+      if (courseToUpdate.teacher.toString() == teacher._id.toString()) {
+        Course.findByIdAndUpdate(req.params.id, {
+          $set: { ...req.body },
+        })
+          .then((course) => {
+            return res.status(200).json({
+              success: true,
+              message: "course updated",
+            });
+          })
+          .catch((err) => {
+            return res.status(500).json({
+              success: false,
+              message: "course did not update error :" + err.message,
+            });
+          });
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: "you're not allowed to update a course that is not yours",
+        });
+      }
+    } else {
+      return res
+        .status(500)
+        .json({ success: false, message: "you're not a teacher" });
+    }
+  }
+);
+//delete
+router.delete("/delete-course/:id", auth, async (req, res) => {
+  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(500).json({
+      success: false,
+      message: "invalid ID",
+    });
+  } else {
+    const course = await Course.findOne().where("id").equals(req.params.id);
+    if (!course) {
+      return res.status(500).json({
+        success: false,
+        message: "could not find course",
+      });
+    }
+    if (course.teacher.toString() == teacher._id.toString()) {
+      Course.deleteOne()
+        .where("id")
+        .equals(course.id)
+        .then(() => {
+          return res
+            .status(200)
+            .json({ success: true, message: "deleted successfully !" });
+        })
+        .catch((err) => {
+          return res.status(400).json({ success: false, message: err.message });
+        });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "you're not allowed to delete this course",
+      });
+    }
+  }
+});
+
+router.put("/subscribe-course/:id", auth, async (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      success: false,
+      message: "invalid ID",
+    });
+  }
+  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+  const student = await Student.findOne().where("user").equals(req.user.id);
+
+  if (!student) {
+    return res.status(400).json({
+      success: false,
+      message: "could not find student logged in",
+    });
+  } else {
+    let course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(400).json({
+        success: false,
+        message: "could not find course",
+      });
+    } else {
+      //verfication teacher
+      if (course.teacher.toString() == teacher._id.toString())
+        return res
+          .status(400)
+          .json({ success: false, message: "you are the owner of the course" });
+      //if the student is subscribed to the course already !
+      var match = await course.students.filter(
+        (s) => s.toString() == student._id.toString()
+      );
+      //if match == true maaneha el course does'nt have any student with the ID provided
+      if (match.length == 0) {
+        course.students.push(student._id);
+        course
+          .save()
+          .then(() => {
+            return res.status(200).json({
+              success: true,
+              message: "subscribed to course",
+              course: course.label,
+            });
+          })
+          .catch((err) => {
+            return res.status(400).json({
+              success: false,
+              message: err.message,
+            });
+          });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "already subscribed to this course",
+        });
+      }
+    }
+  }
+});
+
+router.put("/unsubscribe-course/:id", [auth], async (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      success: false,
+      message: "invalid ID",
+    });
+  }
+  const student = await Student.findOne().where("user").equals(req.user.id);
+  if (!student) {
+    return res.status(400).json({
+      success: false,
+      message: "could not find student logged in",
+    });
+  } else {
+    let course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(400).json({
+        success: false,
+        message: "could not find course",
+      });
+    } else {
+      course.students.splice(student.id, 1);
+      await course.save().then(() => {
+        return res.status(200).json({
+          success: true,
+          message: "unsubscribed from course",
+          course: course.label,
+        });
+      });
+    }
+  }
+});
+//get student courses
+router.get("/student-course", auth, async (req, res) => {
+  const student = await Student.findOne().where("user").equals(req.user.id);
+
+  if (!student) {
+    return res.status(400).json({
+      success: false,
+      message: "could not find student logged in",
+    });
+  }
+  Course.aggregate()
+    .addFields({ subscribers: { $size: ["$students"] } })
+    .find({ students: { $all: [student._id] } })
+    .then((result) => {
+      if (!result)
+        res.status(204).json("you are not subscribe yet to any course !");
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ success: false, error: err.message });
+    });
+});
+//recherche multi critere
+router.get(
+  "/searchCourse",
+  validate(courseSearchValidator),
+  async (req, res) => {
+    Course.aggregate()
+      .addFields({ subscribers: { $size: ["$students"] } })
+
+      .then((course) => {
+        if (!course) res.status(204).json("no content");
+      })
+      .catch((err) => res.status(400).json(err));
+
+    var maxprice = await Course.find().sort({ price: -1 }).limit(1);
+    var minprice = await Course.find().sort({ price: 1 }).limit(1);
+    var maxduration = await Course.find().sort({ duration: -1 }).limit(1);
+    var minduration = await Course.find().sort({ duration: 1 }).limit(1);
+    if (req.body.maxprice) maxprice = req.body.maxprice;
+    else maxprice = maxprice[0].price;
+    if (req.body.minprice) minprice = req.body.minprice;
+    else minprice = minprice[0].price;
+    if (req.body.maxduration) maxduration = req.body.maxduration;
+    else maxduration = maxduration[0].duration;
+    if (req.body.minduration) minduration = req.body.maxduration;
+    else minduration = minduration[0].duration;
+    delete req.body.maxprice;
+    delete req.body.minprice;
+    delete req.body.maxduration;
+    delete req.body.minduration;
+    course
+      .find({
+        ...req.body,
+        price: { $gte: minprice, $lte: maxprice },
+        duration: { $gte: minduration, $lte: maxduration },
+      })
+      .then((courses) => res.json(courses))
+      .catch((err) => res.status(400).json(err));
+  }
+);
+//tri multi critere and order
+router.get("/sort", validate(courseTreeValidator), async (req, res) => {
+  Course.aggregate()
+    .addFields({ subscribers: { $size: ["$students"] } })
+    .sort({ ...req.body })
+    .then((courses) => res.json(courses))
+    .catch((err) => res.status(400).json(err));
+});
+
+/**
+ *
+ * chapter part
+ *
+ */
 
 module.exports = router;

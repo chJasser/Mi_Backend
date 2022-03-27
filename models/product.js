@@ -3,11 +3,11 @@ const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema(
   {
-    seller:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"Seller",
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-
+    description: String,
     label: {
       type: String,
       required: true,
@@ -48,7 +48,7 @@ const ProductSchema = new Schema(
 
     reference: {
       type: String,
-      maxLength: 25,
+      //maxLength: 25,
     },
     state: {
       type: String,
@@ -59,23 +59,28 @@ const ProductSchema = new Schema(
       enum: ["instrument", "gear"],
       default: "instrument",
     },
-    productImage: 
-      [
-        {type:String,
-        default:[]
-        },
-      ]
-          
-    
-      ,
-    
-    
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
+    reviewsCount: {
+      type: Number,
+      default: 0,
+    },
+
+    productImage: [{ type: String, default: [] }],
+
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "ProductReview",
       },
     ],
+
+    discountPercent: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

@@ -9,9 +9,15 @@ const RateCourseSchema = new Schema(
       required: true,
     },
 
-    number: {
+    rate: {
       type: Number,
       default: 0,
+      required: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   { timestamps: true }

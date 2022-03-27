@@ -48,10 +48,9 @@ const UserSchema = new Schema(
       maxLength: 8,
     },
     role: {
-      type: String,
+      type: [String],
       enum: ["user", "teacher", "seller", "student", "admin", "super_admin"],
-      type: String,
-      default: "user",
+      default: ["user"],
     },
     isBlocked: {
       type: Boolean,
@@ -70,12 +69,6 @@ const UserSchema = new Schema(
       type: String,
       default: null,
     },
-    products: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
   },
   { timestamps: true }
 );

@@ -5,14 +5,9 @@ const ChapterSchema = new Schema(
     title: {
       type: String,
       required: true,
+      unique: true,
     },
 
-    resources: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Resource",
-      },
-    ],
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",

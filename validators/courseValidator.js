@@ -1,25 +1,90 @@
-const { check } = require("express-validator");
-exports.userValidator = [
-  check("label", "label is required")
-    .notEmpty()
-    .isLength({
-      min: 4,
-      max: 15,
-    })
-    .withMessage("label must be between 4 characters and 15 characters"),
-  check("description", "description is required")
-    .isEmpty()
-    .isLength({
-      min: 30,
-      max: 255,
-    })
-    .withMessage("last name must be between 30 characters and 255 characters"),
+const yup = require("yup");
+const courseValidator = yup.object().shape({
+  label: yup.string().min(4).max(15).required().trim(),
+  description: yup.string().max(255).required().trim(),
+  level: yup
+    .string()
+    .oneOf(["beginner", "intermediate", "advanced"])
+    .default("beginner"),
+  languages: yup
+    .string()
+    .oneOf(["english", "french", "arabic"])
+    .default("english"),
+  price: yup.number().positive().required(),
+  duration: yup.number().positive().required(),
+  category: yup
+    .string()
+    .oneOf([
+      "voice",
+      "guitar",
+      "keyboards",
+      "strings",
+      "percussions",
+      "brass",
+      "woodwind",
+      "others",
+    ])
+    .default("others"),
+});
+const courseUpdateValidator = yup.object().shape({
+  label: yup.string().min(4).max(15).trim().notRequired(),
+  description: yup.string().max(255).trim().notRequired(),
+  level: yup
+    .string()
+    .oneOf(["beginner", "intermediate", "advanced"])
+    .notRequired(),
+  languages: yup.string().oneOf(["english", "french", "arabic"]).notRequired(),
+  price: yup.number().positive().notRequired(),
+  duration: yup.number().positive().notRequired(),
+  category: yup
+    .string()
+    .oneOf([
+      "voice",
+      "guitar",
+      "keyboards",
+      "strings",
+      "percussions",
+      "brass",
+      "woodwind",
+      "others",
+    ])
+    .notRequired(),
+});
+const courseSearchValidator = yup.object().shape({
+  label: yup.string().min(4).max(15).trim().notRequired(),
+  description: yup.string().max(255).trim().notRequired(),
+  level: yup
+    .string()
+    .oneOf(["beginner", "intermediate", "advanced"])
+    .notRequired(),
+  languages: yup.string().oneOf(["english", "french", "arabic"]).notRequired(),
+  maxprice: yup.number().positive().notRequired(),
+  maxduration: yup.number().positive().notRequired(),
+  minprice: yup.number().positive().notRequired(),
+  minduration: yup.number().positive().notRequired(),
+  category: yup
+    .string()
+    .oneOf([
+      "voice",
+      "guitar",
+      "keyboards",
+      "strings",
+      "percussions",
+      "brass",
+      "woodwind",
+      "others",
+    ])
+    .notRequired(),
+});
+const courseTreeValidator = yup.object().shape({
+  price: yup.number().oneOf([1, -1]).notRequired(),
+  duration: yup.number().oneOf([1, -1]).notRequired(),
+  subscribers: yup.number().oneOf([1, -1]).notRequired(),
+});
 
-  check("duration", "duration is required").isBetween(
-    "duration",
-    1,
-    30,
-    "the duration of the course must be between 1 hour and 30 hours"
-  ),
-  check("price", "price is required").notEmpty(),
-];
+module.exports = {
+  courseValidator,
+  courseUpdateValidator,
+  courseSearchValidator,
+  courseTreeValidator,
+};

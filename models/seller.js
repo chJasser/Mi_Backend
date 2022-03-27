@@ -6,11 +6,15 @@ const SellerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      ref:"User",
     },
     rib: {
       type: Number,
       required: true,
+    },
+    about: {
+      type: String,
+      required: true,
+      maxLength: 300,
     },
     products: [
       {

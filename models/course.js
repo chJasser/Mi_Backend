@@ -46,6 +46,11 @@ const CourseSchema = new Schema(
       required: true,
       default: "english",
     },
+    dateCreation: {
+      type: Date,
+      default: Date.now(),
+    },
+    CourseImage: { type: String, default: "" },
     teacher: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Teacher",
