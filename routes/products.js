@@ -17,8 +17,18 @@ const Rate = require("../models/rate");
 
 const Rateuser = require("../models/rateuser");
 
-const user = require("../models/user");
+router.get("/all-products", (req, res) => {
+  Product.find()
+    .populate("seller")
+    .sort({ likesCount: -1 })
+    .then((prods) => {
+      return res.status(200).json(prods);
+    })
 
+    .catch((err) => {
+      return res.status(500).json(err);
+    });
+});
 router.get("/product/:id", (req, res) => {
   Product.findById(req.params.id)
     .then((product) => {
