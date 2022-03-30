@@ -9,6 +9,18 @@ const {
 } = require("../middleware/verifyToken");
 const { validationResult, check } = require("express-validator");
 
+/* GET user by id . */
+router.get("/get-by-id/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json("there is no user with this ID");
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(404).json(error.message);
+  }
+});
 /* GET blocked users . */
 router.get("/block", [auth, verifyTokenAdmin], async (req, res) => {
   try {
@@ -56,7 +68,7 @@ router.put("/unblock/:id", [auth, verifyTokenAdmin], async (req, res) => {
   }
 });
 /* GET users . */
-router.get("/", [auth, verifyTokenAdmin], async (req, res) => {
+router.get("/get-all-users", [auth, verifyTokenAdmin], async (req, res) => {
   const users = await User.find({});
   if (!users.length) return res.status(404).json("no users found");
   return res.status(200).json(users);
@@ -89,31 +101,22 @@ router.get("/logedinuser", [auth], async (req, res) => {
   }
 });
 
-/* GET user by id . */
-router.get("/:id", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json("there is no user with this ID");
-    }
-    res.json(user);
-  } catch (error) {
-    res.status(404).json(error.message);
-  }
-});
-
 /* delete user by id . */
-router.delete("/:id", [auth, verifyTokenAdmin], async (req, res) => {
-  try {
-    const userToBeDeleted = await User.findById(req.params.id);
-    if (userToBeDeleted) {
-      await User.findByIdAndDelete(userToBeDeleted._id);
-      return res.json("deleted successfully");
+router.delete(
+  "/delete-by-id/:id",
+  [auth, verifyTokenAdmin],
+  async (req, res) => {
+    try {
+      const userToBeDeleted = await User.findById(req.params.id);
+      if (userToBeDeleted) {
+        await User.findByIdAndDelete(userToBeDeleted._id);
+        return res.json("deleted successfully");
+      }
+    } catch (error) {
+      return res.json(error.message);
     }
-  } catch (error) {
-    return res.json(error.message);
   }
-});
+);
 
 router.put(
   "/updateimg/:id",
