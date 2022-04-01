@@ -71,7 +71,7 @@ router.put("/unblock/:id", [auth, verifyTokenAdmin], async (req, res) => {
 router.get("/get-all-users", [auth, verifyTokenAdmin], async (req, res) => {
   const users = await User.find({});
   if (!users.length) return res.status(404).json("no users found");
-  return res.status(200).json(users);
+  else return res.status(200).json(users);
 });
 
 // find user with email
