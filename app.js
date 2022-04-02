@@ -47,8 +47,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-// makes the folder public 
-app.use('/uploads', express.static('uploads'));
+// makes the folder public
+app.use("/uploads", express.static("uploads"));
 /*
  **
  **
@@ -75,6 +75,7 @@ const sellerRouter = require("./routes/sellers");
 const studentRouter = require("./routes/students");
 const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
+const karaokeRouter = require("./routes/karaoke");
 /*
  **
  **
@@ -127,6 +128,7 @@ app.use(flash());
  ***/
 //routes
 // app.use("/auth", authRouter);
+app.use("/karaoke", karaokeRouter);
 app.use("/authentication", authenticationRouter);
 app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);
