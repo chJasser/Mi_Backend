@@ -11,37 +11,26 @@ router.get("/", (req, res) => {
     .then((rates) => res.status(200).json(rates))
     .catch((err) => res.status(400).json(err));
 });
-//get by id
-router.get("/:id", (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid ID",
-    });}
-   RateCourseSchema.find({id:req.params.id})
-    .then((rates) => res.status(200).json(rates))
-    .catch((err) => res.status(400).json(err));
-});
-router.get("/rate/:id",auth, (req, res) => {
+router.get("/rate/:id", auth, (req, res) => {
   if (!ObjectId.isValid(req.params.id)) {
     return res.status(400).json({
       success: false,
       message: "invalid ID",
     });
   }
-  RateCourseSchema.find({ id: req.params.id,user:req.user.id })
+  RateCourseSchema.find({ course: req.params.id, user: req.user.id })
     .then((rates) => res.status(200).json(rates))
     .catch((err) => res.status(400).json(err));
 });
 //rate a course
 router.post("/:id/:rate", auth, async (req, res) => {
-   if (!ObjectId.isValid(req.params.id)) {
+  if (!ObjectId.isValid(req.params.id)) {
     return res.status(400).json({
       success: false,
       message: "invalid ID",
-    });}
+    });
+  }
   const course = await Course.findById(req.params.id);
-  const user = await User.findById(req.user.id);
   const courseRate = await RateCourseSchema.findOne({
     user: req.user.id,
     course: req.params.id,
@@ -88,8 +77,8 @@ router.delete("/:id", auth, async (req, res) => {
     });
   } else {
     const courseRate = await RateCourseSchema.findOne({
-      user:req.user.id,
-      course:req.params.id
+      user: req.user.id,
+      course: req.params.id,
     });
     if (!courseRate) {
       return res.status(400).json({
@@ -110,31 +99,53 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 //get rate of course
-router.get("/rate/:id", async(req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid ID",
-    });
+router.get("/get-rate/:id", async (req, res) => {
+  const rate = await RateCourseSchema.find({ course: req.params.id }).count();
+  var totalRate = 0;
+  if (rate != 0) {
+    const val = await RateCourseSchema.aggregate([
+      { $match: { course: ObjectId(req.params.id) } },
+    ])
+      .group({ _id: "$course", totalRate: { $avg: "$rate" } })
+      .project({ totalRate: 1, _id: 0 });
+    totalRate = val[0].totalRate;
   }
-  const course = await Course.findById(req.params.id);
-   if (!course) {
-     return res
-       .status(400)
-       .json({ success: false, message: "could not find course" });
-   }
-  RateCourseSchema.aggregate([{ $match: { course: ObjectId(req.params.id) } }])
+
+  res.status(200).json({ totalRate });
+});
+//get detail  rate
+router.get("/:id", auth, async (req, res) => {
+  const rate = await RateCourseSchema.find({ course: req.params.id }).count();
+  var totalRate = 0;
+  if (rate != 0) {
+    const val = await RateCourseSchema.aggregate([
+      { $match: { course: ObjectId(req.params.id) } },
+    ])
+      .group({ _id: "$course", totalRate: { $avg: "$rate" } })
+      .project({ totalRate: 1, _id: 0 });
+    totalRate = val[0].totalRate;
+  }
+  const myrate2 = await RateCourseSchema.find({
+    course: req.params.id,
+    user: req.user.id,
+  }).count();
+  var myrate = 0;
+  if (myrate2 != 0) {
+    const val2 = await RateCourseSchema.find({
+      course: req.params.id,
+      user: req.user.id,
+    });
+    myrate = val2[0].rate;
+  }
+  res.status(200).json({ totalRate, myrate });
+});
+
+//sort by course 1asc -1desc
+router.get("/sort/:order", async (req, res) => {
+  RateCourseSchema.aggregate()
     .group({ _id: "$course", totalRate: { $avg: "$rate" } })
-    .project({ totalRate: 1, _id: 0 })
+    .sort({ totalRate: req.params.order })
     .then((rate) => res.status(200).json(rate))
     .catch((err) => res.status(400).json(err));
-});
-//sort by course 1asc -1desc
-router.get("/sort/:order", async(req, res) => {
-   RateCourseSchema.aggregate()
-     .group({ _id: "$course", totalRate: { $avg: "$rate" } })
-     .sort({ totalRate: req.params.order})
-     .then((rate) => res.status(200).json(rate))
-     .catch((err) => res.status(400).json(err));
 });
 module.exports = router;

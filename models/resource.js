@@ -1,7 +1,12 @@
 const mongoose = require("mongoose");
+const { string } = require("yup");
 const Schema = mongoose.Schema;
 const ResourceSchema = new Schema(
   {
+    description: {
+      type: String,
+      default: "",
+    },
     type: {
       type: String,
       required: true,

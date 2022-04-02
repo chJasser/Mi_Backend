@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+var upload = require("../middleware/courseUpload");
 const {
   courseValidator,
   courseUpdateValidator,
@@ -67,33 +68,28 @@ router.get("/course-teacher", async (req, res) => {
     });
 });
 //add course
-router.post(
-  "/add-course",
-  auth,
-  validate(courseValidator),
-  async (req, res) => {
-    const teacher = await Teacher.findOne().where("user").equals(req.user.id);
-    if (teacher) {
-      req.body.teacher = teacher.id;
-      new Course({ ...req.body })
-        .save()
-        .then((course) => {
-          return res.status(201).json({
-            success: true,
-            message: "courses created !",
-            course: course,
-          });
-        })
-        .catch((err) => {
-          return res.status(500).json({ success: false, message: err.message });
+router.post("/add", auth, upload, async (req, res) => {
+  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+  if (teacher) {
+    req.body.teacher = teacher.id;
+    new Course({ ...req.body, CourseImage: req.file.filename })
+      .save()
+      .then((course) => {
+        return res.status(201).json({
+          success: true,
+          message: "courses created !",
+          course: course,
         });
-    } else {
-      return res
-        .status(500)
-        .json({ success: false, message: "you're not logged in as a teacher" });
-    }
+      })
+      .catch((err) => {
+        return res.status(500).json({ success: false, message: err.message });
+      });
+  } else {
+    return res
+      .status(500)
+      .json({ success: false, message: "you're not logged in as a teacher" });
   }
-);
+});
 //update course
 
 router.put(
@@ -114,7 +110,7 @@ router.put(
       let courseToUpdate = await Course.findOne()
         .where("_id")
         .equals(req.params.id);
-      if (courseToUpdate.teacher.toString() == teacher._id.toString()) {
+      if (courseToUpdate.teacher.toString() == teacher.id.toString()) {
         Course.findByIdAndUpdate(req.params.id, {
           $set: { ...req.body },
         })
@@ -160,7 +156,7 @@ router.delete("/delete-course/:id", auth, async (req, res) => {
         message: "could not find course",
       });
     }
-    if (course.teacher.toString() == teacher._id.toString()) {
+    if (course.teacher.toString() == teacher.id.toString()) {
       Course.deleteOne()
         .where("id")
         .equals(course.id)
@@ -188,9 +184,8 @@ router.put("/subscribe-course/:id", auth, async (req, res) => {
       message: "invalid ID",
     });
   }
-  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
-  const student = await Student.findOne().where("user").equals(req.user.id);
-
+  const teacher = await Teacher.findOne({ user: req.user.id });
+  const student = await Student.findOne({ user: req.user.id });
   if (!student) {
     return res.status(400).json({
       success: false,
@@ -205,13 +200,17 @@ router.put("/subscribe-course/:id", auth, async (req, res) => {
       });
     } else {
       //verfication teacher
-      if (course.teacher.toString() == teacher._id.toString())
-        return res
-          .status(400)
-          .json({ success: false, message: "you are the owner of the course" });
+      if (teacher !== null) {
+        if (course.teacher.toString() === teacher._id.toString())
+          return res.status(400).json({
+            success: false,
+            message: "you are the owner of the course",
+          });
+      }
+
       //if the student is subscribed to the course already !
       var match = await course.students.filter(
-        (s) => s.toString() == student._id.toString()
+        (s) => s.toString() == student.id.toString()
       );
       //if match == true maaneha el course does'nt have any student with the ID provided
       if (match.length == 0) {
@@ -296,44 +295,39 @@ router.get("/student-course", auth, async (req, res) => {
     });
 });
 //recherche multi critere
-router.get(
-  "/searchCourse",
-  validate(courseSearchValidator),
-  async (req, res) => {
-    Course.aggregate()
-      .addFields({ subscribers: { $size: ["$students"] } })
-
-      .then((course) => {
-        if (!course) res.status(204).json("no content");
-      })
-      .catch((err) => res.status(400).json(err));
-
-    var maxprice = await Course.find().sort({ price: -1 }).limit(1);
-    var minprice = await Course.find().sort({ price: 1 }).limit(1);
-    var maxduration = await Course.find().sort({ duration: -1 }).limit(1);
-    var minduration = await Course.find().sort({ duration: 1 }).limit(1);
-    if (req.body.maxprice) maxprice = req.body.maxprice;
-    else maxprice = maxprice[0].price;
-    if (req.body.minprice) minprice = req.body.minprice;
-    else minprice = minprice[0].price;
-    if (req.body.maxduration) maxduration = req.body.maxduration;
-    else maxduration = maxduration[0].duration;
-    if (req.body.minduration) minduration = req.body.maxduration;
-    else minduration = minduration[0].duration;
-    delete req.body.maxprice;
-    delete req.body.minprice;
-    delete req.body.maxduration;
-    delete req.body.minduration;
-    course
-      .find({
-        ...req.body,
-        price: { $gte: minprice, $lte: maxprice },
-        duration: { $gte: minduration, $lte: maxduration },
-      })
-      .then((courses) => res.json(courses))
-      .catch((err) => res.status(400).json(err));
-  }
-);
+router.put("/searchCourse", async (req, res) => {
+  var maxprice = await Course.find().sort({ price: -1 }).limit(1);
+  var minprice = await Course.find().sort({ price: 1 }).limit(1);
+  var maxduration = await Course.find().sort({ duration: -1 }).limit(1);
+  var minduration = await Course.find().sort({ duration: 1 }).limit(1);
+  if (req.body.maxprice) maxprice = req.body.maxprice;
+  else maxprice = maxprice[0].price;
+  if (req.body.minprice) minprice = req.body.minprice;
+  else minprice = minprice[0].price;
+  if (req.body.maxduration) maxduration = req.body.maxduration;
+  else maxduration = maxduration[0].duration;
+  if (req.body.minduration) minduration = req.body.minduration;
+  else minduration = minduration[0].duration;
+  if (req.body.description == null) delete req.body.description;
+  if (req.body.languages == null) delete req.body.languages;
+  if (req.body.category == null) delete req.body.category;
+  if (req.body.label == null) delete req.body.label;
+  if (req.body.level == null) delete req.body.level;
+  delete req.body.maxprice;
+  delete req.body.minprice;
+  delete req.body.maxduration;
+  delete req.body.minduration;
+  course
+    .aggregate()
+    .addFields({ subscribers: { $size: ["$students"] } })
+    .match({
+      ...req.body,
+      price: { $gte: minprice, $lte: maxprice },
+      duration: { $gte: minduration, $lte: maxduration },
+    })
+    .then((courses) => res.json(courses))
+    .catch((err) => res.status(400).json(err));
+});
 //tri multi critere and order
 router.get("/sort", validate(courseTreeValidator), async (req, res) => {
   Course.aggregate()
@@ -342,7 +336,41 @@ router.get("/sort", validate(courseTreeValidator), async (req, res) => {
     .then((courses) => res.json(courses))
     .catch((err) => res.status(400).json(err));
 });
+router.get("/details", async (req, res) => {
+  var maxprice = await Course.aggregate()
+    .project({ price: 1 }, { id: 0 })
+    .sort({ price: -1 })
+    .limit(1);
+  var minprice = await Course.aggregate()
+    .project({ price: 1 }, { id: 0 })
+    .sort({ price: 1 })
+    .limit(1);
+  var maxduration = await Course.aggregate()
+    .project({ duration: 1 }, { id: 0 })
+    .sort({ duration: -1 })
+    .limit(1);
+  var minduration = await Course.aggregate()
+    .project({ duration: 1 }, { id: 0 })
+    .sort({ duration: 1 })
+    .limit(1);
+  if (maxprice == null) {
+    (maxprice = 0), (minprice = 0);
+  } else {
+    maxprice = maxprice[0].price;
+    minprice = minprice[0].price;
+  }
+  if (maxduration == null) {
+    (maxduration = 0), (minduration = 0);
+  } else {
+    maxduration = maxduration[0].duration;
+    minduration = minduration[0].duration;
+  }
 
+  res.status(200).json({ maxprice, minprice, maxduration, minduration });
+});
+router.post("/upload", upload, (req, res) => {
+  res.send("sccues");
+});
 /**
  *
  * chapter part

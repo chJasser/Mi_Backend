@@ -47,8 +47,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-// makes the folder public 
-app.use('/uploads', express.static('uploads'));
+// makes the folder public
+app.use("/uploads", express.static("uploads"));
+app.use("/data/image", express.static("coursedata/images/"));
 /*
  **
  **
@@ -75,7 +76,7 @@ const sellerRouter = require("./routes/sellers");
 const studentRouter = require("./routes/students");
 const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
-const courseRateRouter=require("./routes/rateCourses")
+const courseRateRouter = require("./routes/rateCourses");
 /*
  **
  **
@@ -144,7 +145,7 @@ app.use("/courseComments", courseCommentsRouter);
 app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/users", usersRouter);
-app.use("/rate-course",courseRateRouter)
+app.use("/rate-course", courseRateRouter);
 app.use("/uploads", express.static("uploads"));
 /*
 **

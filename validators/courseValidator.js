@@ -25,6 +25,7 @@ const courseValidator = yup.object().shape({
       "others",
     ])
     .default("others"),
+  CourseImage: yup.string().notRequired(),
 });
 const courseUpdateValidator = yup.object().shape({
   label: yup.string().min(4).max(15).trim().notRequired(),
@@ -49,6 +50,7 @@ const courseUpdateValidator = yup.object().shape({
       "others",
     ])
     .notRequired(),
+  CourseImage: yup.string().notRequired(),
 });
 const courseSearchValidator = yup.object().shape({
   label: yup.string().min(4).max(15).trim().notRequired(),
