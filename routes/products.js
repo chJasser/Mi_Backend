@@ -10,67 +10,140 @@ const ProductReview = require("../models/productReview");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
 const { verifyTokenSeller } = require("../middleware/verifyToken");
-const { TrustProductsEvaluationsContext } = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
-const Rate =require("../models/rate");
+const {
+  TrustProductsEvaluationsContext,
+} = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
+const Rate = require("../models/rate");
 
 const Rateuser = require("../models/rateuser");
 
-const user = require("../models/user");
+router.get("/all-products", (req, res) => {
+  Product.find()
+    .populate("seller")
+    .sort({ likesCount: -1 })
+    .then((prods) => {
+      return res.status(200).json(prods);
+    })
 
-router.get("/product/:id",(req,res)=>{
-Product.findById(req.params.id).then((product)=>{
-  if(!product){
-    res.status(404).send({message:'product not found'})
-  } else{
-res.status(200).json(product)}
+    .catch((err) => {
+      return res.status(500).json(err);
+    });
+});
+router.get("/product/:id", (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "product not found" });
+      } else {
+        res.status(200).json(product);
+      }
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
+router.get("/seller/:id", (req, res) => {
+  Seller.findById(req.params.id)
+    .then((seller) => {
+      User.findById(seller.user).then((user) => {
+        res.json(user);
+      });
+    })
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
 
-}).catch((err)=>{
-res.status(500).json(err);
-})
-})
+router.get("/sel/:id", (req, res) => {
+  Seller.findById(req.params.id)
+    .then((seller) => {
+      res.json(seller);
+    })
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
 
+router.get("/product/:id", (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "product not found" });
+      } else {
+        res.status(200).json(product);
+      }
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
 
-//Search By Label
-// router.get("/searching", (req, res) => {
+router.get("/all-sellers", (req, res) => {
+  Seller.find()
+    .then((sellers) => res.json(sellers))
+    .catch((err) => console.log(err.message));
+});
 
-//   var { label, category, marque, minPrice, maxPrice, reference, state, type } = req.query
-//   // if(label)
-//   //   var label = req.query.label
-//   // if(req.query.category)
-//   //   var category = req.query.category
-//   // else
-//   //   category = req.query.
-//   // var marque = req.query.marque
-//   // var minPrice = req.query.minPrice
-//   // var maxPrice = req.query.maxPrice
-//   // var reference = req.query.reference
-//   // var state = req.query.state
-//   // var type = req.query.type
-//   Product.find({$or : [{label: label}, {category: category}, {marque: marque}, {reference: reference}, {state:state},{type:type}]})
-//     .then((product) => res.json(product))
-//     .catch((err) => console.log(err.message));
-// });
+router.get("/NbrProductsPerSeller/:id", (req, res) => {
+  Product.find({ seller: req.params.id })
+    .then((products) => res.json(products.length))
+    .catch((err) => console.log(err.message));
+});
+
+router.get("/productsPerSeller/:id", (req, res) => {
+  Product.find({ seller: req.params.id })
+    .then((products) => res.json(products))
+    .catch((err) => console.log(err.message));
+});
+router.get("/productsPerSeller/:id", (req, res) => {
+  Product.find({ seller: req.params.id })
+    .then((products) => res.json(products.length))
+    .catch((err) => console.log(err.message));
+});
+
+router.get("/getproductsseller", [auth, verifyTokenSeller], (req, res) => {
+  Seller.findOne({ user: req.user._id })
+    .then((sellers) => {
+      if (!sellers) {
+        res.status(500).json({
+          success: false,
+          message: "can't find a seller account related to this user",
+        });
+      } else {
+        Product.find({ seller: sellers._id })
+          .then((products) => {
+            res.json(products);
+          })
+          .catch((err) => {
+            res.json({ msg: err.message });
+          });
+      }
+    })
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
 
 //Search By Marque
-router.get('/marque', (req, res) => {
-  var {marque} = req.query
-  Product.find({marque: marque})
-  .then((products) => res.json(products))
-  .catch((err) => console.log(err.message));
-})
+router.get("/marque", (req, res) => {
+  var { marque } = req.query;
+  Product.find({ marque: marque })
+    .then((products) => res.json(products))
+    .catch((err) => console.log(err.message));
+});
 
-//Search By price 
-router.get('/price', (req, res) => {
-  var {min , max} = req.query
-  Product.find({price: {$lte: max, $gte: min}})
-  .then((products) => res.json(products))
-  .catch((err) => console.log(err.message));
-})
+//Search By price
+router.get("/price", (req, res) => {
+  var { min, max } = req.query;
+  Product.find({ price: { $lte: max, $gte: min } })
+    .then((products) => res.json(products))
+    .catch((err) => console.log(err.message));
+});
 //
 //Search By Label
 router.get("/search", (req, res) => {
-  var label = req.query.label
-  Product.find({label: label})
+  var label = req.query.label;
+  Product.find({ label: label })
     .then((product) => res.json(product))
     .catch((err) => console.log(err.message));
 });
@@ -171,179 +244,199 @@ router.post(
   "/add-product",
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
-  async (req, res) => {
-    const seller = Seller.findOne().where("user").equals(req.user.id);
-    if (!seller) {
-      res.status(500).json({
-        success: false,
-        message: "can't find a seller account related to this user",
-      });
-    } else {
-      let filesarray = [];
-      req.files.forEach((element) => {
-        filesarray.push(element.path);
-      });
+  (req, res) => {
+    Seller.findOne({ user: req.user._id })
+      .then((sellers) => {
+        if (!sellers) {
+          res.status(500).json({
+            success: false,
+            message: "can't find a seller account related to this user",
+          });
+        } else {
+          let filesarray = [];
+          req.files.forEach((element) => {
+            filesarray.push(element.path);
+          });
 
-      const newproduct = new Product({
-        label: req.body.label,
-        category: req.body.category,
-        marque: req.body.marque,
-        price: req.body.price,
-        reference: req.body.reference,
-        state: req.body.state,
-        type: req.body.type,
-        seller: seller.id,
-        productImage: filesarray,
-        discountPercent: req.body.discountPercent,
-      });
+          const newproduct = new Product({
+            label: req.body.label,
+            category: req.body.category,
+            marque: req.body.marque,
+            price: req.body.price,
+            reference: req.body.reference,
+            state: req.body.state,
+            type: req.body.type,
+            seller: sellers._id,
+            description: req.body.description,
+            productImage: filesarray,
+            discountPercent: req.body.discountPercent,
+          });
 
-      newproduct.save(function (err, product) {
-        if (err) {
-          console.log(err.message);
+          newproduct.save(function (err, product) {
+            if (err) {
+              console.log(err.message);
+              res.json({ success: false, message: err.message });
+            }
+            res.json({
+              success: true,
+              message: "product is added with success",
+            });
+
+            newrating = new Rate({
+              nbrpeople: 1,
+              rating: 1,
+              product: product._id,
+            });
+            newrating.save(newrating).then((savedrating) => {});
+          });
         }
-        res.json(product);
+      })
+      .catch((err) => {
+        if (err) {
+          res.json({ msg: err.message });
+        }
       });
-    }
   }
 );
-router.get("/getrating/:id",(req,res)=>{
-  
-Product.findById(req.params.id).then((product)=>{
-  if(!product){
-    res.status(401).json({msg: "product not found"});
-  }
-  else{
-    Rate.find({product:req.params.id},(err,rate)=>{
-      
-      res.json(rate);
-
-    })
-  }
-})
-
-
-
-})
-///
-
-
-///
-
-
-router.put("/rating/:id",auth,(req,res)=>{
-
-Product.findById(req.params.id).then((product)=>{
-  if (!product) {
-    return res.staus(401).json({ msg: "product not found" });
-  }
-  else{
-    
-  Rateuser.findOne({user:req.user._id,product:req.params.id} ).then((rateu)=>
-    {
-    if(rateu){
-      Rateuser.findByIdAndUpdate(rateu._id,{$set:{rate:req.body.rate,}} ).then(
-      (newrate)=>{
-        
-        Rateuser.find({product:req.params.id}).then((products)=>{
-        
-          var allrating=0;
-          products.forEach((product)=>{
-           allrating+= product.rate;
-          })
-         
-         const nbr=products.length;
-        const rates=allrating/nbr;
-          var newrating ={
-            nbrpeople:nbr,
-            rating:rates,
-           
-          }
-          Rate.findOne({product:req.params.id}).then((product)=>{
-            if(!product){
-              newrating =new Rate({
-                nbrpeople:1,
-                rating:req.body.rate,
-                product:req.params.id,
-              
-                })
-                newrating.save(newrating).then((savedrating)=>{
-                  
-               
-                 })
-            }else{
-               Rate.findOneAndUpdate({product:req.params.id},{$set:newrating},(err,Rateupdated)=>{
-              res.json(Rateupdated);
-      
-      
-               })}
-          })
-        
-          
-        })
-      }
-    );
-  
-  }
-  else if(!rateu){
-  newrateuser = new Rateuser({
- user:req.user._id,
- product:req.params.id,
- rate:req.body.rate,
-
-})
-newrateuser.save(newrateuser,(err,savedrate)=>{
-  Rateuser.find({product:req.params.id}).then((products)=>{
-        
-    var allrating=0;
-    products.forEach((product)=>{
-     allrating+= product.rate;
-    })
-   
-   const nbr=products.length;
-  const rates=allrating/nbr;
-    var newrating ={
-      nbrpeople:nbr,
-      rating:rates,
-     
+router.get("/getrating/:id", (req, res) => {
+  Product.findById(req.params.id).then((product) => {
+    if (!product) {
+      res.status(401).json({ msg: "product not found" });
+    } else {
+      Rate.find({ product: req.params.id }, (err, rate) => {
+        res.json(rate);
+      });
     }
-    
-    Rate.findOne({product:req.params.id}).then((product)=>{
-      if(!product){
-        newrating =new Rate({
-          nbrpeople:1,
-          rating:req.body.rate,
-          product:req.params.id,
+  });
+});
+// router.get("/getratingbyuser/:id", auth, (req, res) => {
+//   Rateuser.findOne({ user: req.user._id, product: req.params.id })
+//     .then((rate) => {
+//       if (rate) {
+//         res.json(rate);
+//       } else {
+//         res.json(1);
+//       }
+//     );
+  
+//   }
+//   else if(!rateu){
+//   newrateuser = new Rateuser({
+//  user:req.user._id,
+//  product:req.params.id,
+//  rate:req.body.rate,
+
+// })
+// newrateuser.save(newrateuser,(err,savedrate)=>{
+//   Rateuser.find({product:req.params.id}).then((products)=>{
         
+//     var allrating=0;
+//     products.forEach((product)=>{
+//      allrating+= product.rate;
+//     })
+//     .catch((err) => {
+//       return res.status(500).json(err.message);
+//     });
+// });
+///
+
+///
+
+router.put("/rating/:id", auth, (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        return res.staus(401).json({ msg: "product not found" });
+      } else {
+        Rateuser.findOne({ user: req.user._id, product: req.params.id })
+          .then((rateu) => {
+            if (rateu) {
+              Rateuser.findByIdAndUpdate(rateu._id, {
+                $set: { rate: req.body.rate },
+              }).then((newrate) => {
+                Rateuser.find({ product: req.params.id }).then((products) => {
+                  var allrating = 0;
+                  products.forEach((product) => {
+                    allrating += product.rate;
+                  });
+
+                  const nbr = products.length;
+                  const rates = allrating / nbr;
+                  var newrating = {
+                    nbrpeople: nbr,
+                    rating: rates,
+                  };
+                  Rate.findOne({ product: req.params.id }).then((product) => {
+                    if (!product) {
+                      newrating = new Rate({
+                        nbrpeople: 1,
+                        rating: req.body.rate,
+                        product: req.params.id,
+                      });
+                      newrating.save(newrating).then((savedrating) => {});
+                    } else {
+                      Rate.findOneAndUpdate(
+                        { product: req.params.id },
+                        { $set: newrating },
+                        (err, Rateupdated) => {
+                          res.json(Rateupdated);
+                        }
+                      );
+                    }
+                  });
+                });
+              });
+            } else if (!rateu) {
+              newrateuser = new Rateuser({
+                user: req.user._id,
+                product: req.params.id,
+                rate: req.body.rate,
+              });
+              newrateuser.save(newrateuser, (err, savedrate) => {
+                Rateuser.find({ product: req.params.id }).then((products) => {
+                  var allrating = 0;
+                  products.forEach((product) => {
+                    allrating += product.rate;
+                  });
+
+                  const nbr = products.length;
+                  const rates = allrating / nbr;
+                  var newrating = {
+                    nbrpeople: nbr,
+                    rating: rates,
+                  };
+
+                  Rate.findOne({ product: req.params.id }).then((product) => {
+                    if (!product) {
+                      newrating = new Rate({
+                        nbrpeople: 1,
+                        rating: req.body.rate,
+                        product: req.params.id,
+                      });
+                      newrating.save(newrating).then((savedrating) => {});
+                    } else {
+                      Rate.findOneAndUpdate(
+                        { product: req.params.id },
+                        { $set: newrating },
+                        (err, Rateupdated) => {
+                          res.json(Rateupdated);
+                        }
+                      );
+                    }
+                  });
+                });
+              });
+            }
           })
-          newrating.save(newrating).then((savedrating)=>{
-            
-         
-           })
-      }else{
-         Rate.findOneAndUpdate({product:req.params.id},{$set:newrating},(err,Rateupdated)=>{
-        res.json(Rateupdated);
-
-
-         })}
+          .catch((err) => {
+            res.json({ msg: err.message });
+          });
+      }
     })
-    
-  })
-
-
-
-})
- }
-}
-)  .catch((err)=>{
-  res.json({msg:err.message})
-})
-}
-   
-
-
-}).catch((err)=>{ res.json({msg:err.message})})
-
-})
+    .catch((err) => {
+      res.json({ msg: err.message });
+    });
+});
 
 //
 router.put(
@@ -351,7 +444,7 @@ router.put(
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
   async (req, res) => {
-    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    const seller = await Seller.findOne().where("user").equals(req.user._id);
     if (!seller) {
       res.status(500).json({
         success: false,
@@ -363,8 +456,16 @@ router.put(
       req.files.forEach((element) => {
         filesarray.push(element.path);
       });
-      const { label, category, marque, price, reference, state, type } =
-        req.body;
+      const {
+        label,
+        category,
+        marque,
+        price,
+        reference,
+        state,
+        type,
+        description,
+      } = req.body;
       let Productfeilds = {};
       if (label) Productfeilds.label = label;
       if (category) Productfeilds.category = category;
@@ -373,6 +474,7 @@ router.put(
       if (reference) Productfeilds.reference = reference;
       if (state) Productfeilds.state = state;
       if (type) Productfeilds.type = type;
+      if (description) Productfeilds.description = description;
       if (req.files) Productfeilds.productImage = filesarray;
 
       Product.findById(req.params.id)
@@ -406,7 +508,7 @@ router.delete(
   "/delete-product/:id",
   [auth, verifyTokenSeller],
   async (req, res) => {
-    const seller = await Seller.findOne().where("user").equals(req.user.id);
+    const seller = await Seller.findOne().where("user", req.user.id);
     if (!seller) {
       res.status(500).json({
         success: false,
@@ -417,18 +519,65 @@ router.delete(
         .then((product) => {
           if (!product) {
             return res.json({ msg: "product not found" });
-          } else if (product.seller.toString() != teacher.id) {
+          } else if (product.seller.toString() != seller._id) {
             return res.status(500).json({
               success: false,
               message: "cant delete a product not yours",
             });
           } else {
-            Product.findByIdAndDelete(req.params.id, (err, data) => {
-              return res.status(500).json({
-                success: true,
-                message: "product deleted",
+            Bookmark.findOneAndDelete()
+              .where("product", req.params.id)
+              .then((bookmark) => {
+                Like.findOneAndDelete()
+                  .where("product", req.params.id)
+                  .then((like) => {
+                    Rate.findOneAndDelete()
+                      .where("product", req.params.id)
+                      .then((rate) => {
+                        Rateuser.findOneAndDelete()
+                          .where("product", req.params.id)
+                          .then((rateuser) => {
+                            Product.findByIdAndDelete(req.params.id)
+                              .then((product) => {
+                                const reviews = product.reviews;
+                                reviews.forEach((review) => {
+                                  ProductReview.findByIdAndDelete(review)
+                                    .then((result) => {
+                                      return res.status(200).json({
+                                        success: true,
+                                        message: "deleted successfully !",
+                                      });
+                                    })
+                                    .catch((error) => {
+                                      return res.status(500).json({
+                                        success: false,
+                                        message: "reviews cannot be deleted !",
+                                      });
+                                    });
+                                });
+                              })
+                              .catch((error) => {
+                                return res.status(500).json({
+                                  success: false,
+                                  message: error.message,
+                                });
+                              });
+                          });
+                      })
+                      .catch((error) => {
+                        return res.status(500).json({
+                          success: false,
+                          message: error.message,
+                        });
+                      });
+                  });
+              })
+              .catch((error) => {
+                return res.status(500).json({
+                  success: false,
+                  message: error.message,
+                });
               });
-            });
           }
         })
         .catch((err) => console.log(err.message));

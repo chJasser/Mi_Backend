@@ -32,6 +32,8 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "serve": "^13.0.2",
+    "socket.io": "^4.4.1",
     "twilio": "^3.75.0",
     "yup": "^0.32.11"
   }

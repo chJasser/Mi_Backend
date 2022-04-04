@@ -77,6 +77,7 @@ const studentRouter = require("./routes/students");
 const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
 const courseRateRouter = require("./routes/rateCourses");
+const karaokeRouter = require("./routes/karaoke");
 /*
  **
  **
@@ -129,6 +130,7 @@ app.use(flash());
  ***/
 //routes
 // app.use("/auth", authRouter);
+app.use("/karaoke", karaokeRouter);
 app.use("/authentication", authenticationRouter);
 app.use("/admins", adminRouter);
 app.use("/teachers", teacherRouter);

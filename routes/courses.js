@@ -282,9 +282,10 @@ router.get("/student-course", auth, async (req, res) => {
       message: "could not find student logged in",
     });
   }
+  console.log(student._id);
   Course.aggregate()
     .addFields({ subscribers: { $size: ["$students"] } })
-    .find({ students: { $all: [student._id] } })
+    .match({ students: { $all: [student._id] } })
     .then((result) => {
       if (!result)
         res.status(204).json("you are not subscribe yet to any course !");

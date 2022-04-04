@@ -32,13 +32,17 @@ router.put("/add-review/:productId", auth, async (req, res) => {
         .then((rev) => {
           Product.findOneAndUpdate(
             { _id: productToBeReviewed.id },
-            { $addToSet: { reviews: rev._id.toString() } }
+            {
+              $addToSet: { reviews: rev._id.toString() },
+              $inc: { reviewsCount: 1 },
+            }
           )
-            .set("reviewsCount", rev.reviewsCount + 1)
-            .then(() => {
+
+            .then((product) => {
+              console.log(product.reviewCount);
               return res.status(201).json({
                 success: true,
-                review: "review Added successfully",
+                review: rev,
               });
             })
             .catch((error) => {
@@ -62,16 +66,20 @@ router.put("/add-review/:productId", auth, async (req, res) => {
     }
   }
 });
-router.get("/get-prod-reviews/:idProduct", (req, res) => {
-  Product.findOne({ _id: req.params.idProduct })
-    .populate("reviews")
-    .exec((err, data) => {
-      if (err) return res.status(500).json({ error: err });
-      return res.status(200).json({
-        success: false,
-        reviews: data.reviews,
-      });
+router.get("/get-prod-reviews/:idProduct", async (req, res) => {
+  const product = await Product.findOne({ _id: req.params.idProduct }).populate(
+    "reviews"
+  );
+  if (product) {
+    return res.status(200).json({
+      success: true,
+      reviews: product.reviews,
     });
+  } else {
+    return res
+      .status(500)
+      .json({ error: "could'not find product with this id" });
+  }
 });
 
 module.exports = router;
