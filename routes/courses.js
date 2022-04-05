@@ -47,17 +47,18 @@ router.get("/get-course/:id", (req, res) => {
 });
 
 //get courses by teacher
-router.get("/course-teacher", async (req, res) => {
-  if (!ObjectId.isValid(req.user.id)) {
+router.get("/course-teacher", auth, async (req, res) => {
+  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+
+  if (!teacher) {
     return res.status(400).json({
       success: false,
-      message: "invalid ID",
+      message: "could not find teacher logged in",
     });
   }
   Course.aggregate()
     .addFields({ subscribers: { $size: ["$students"] } })
-    .where("teacher")
-    .equals(req.user.id)
+    .match({ teacher: teacher._id })
     .then((result) => {
       if (!result)
         res.status(404).json("this teacher does not have any courses yet !");
@@ -70,20 +71,36 @@ router.get("/course-teacher", async (req, res) => {
 //add course
 router.post("/add", auth, upload, async (req, res) => {
   const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+  console.log(req.file);
+  console.log(req.body);
   if (teacher) {
     req.body.teacher = teacher.id;
-    new Course({ ...req.body, CourseImage: req.file.filename })
-      .save()
-      .then((course) => {
-        return res.status(201).json({
-          success: true,
-          message: "courses created !",
-          course: course,
+    if (req.file)
+      new Course({ ...req.body, CourseImage: req.file.filename })
+        .save()
+        .then((course) => {
+          return res.status(201).json({
+            success: true,
+            message: "courses created !",
+            course: course,
+          });
+        })
+        .catch((err) => {
+          return res.status(500).json({ success: false, message: err.message });
         });
-      })
-      .catch((err) => {
-        return res.status(500).json({ success: false, message: err.message });
-      });
+    else
+      new Course({ ...req.body })
+        .save()
+        .then((course) => {
+          return res.status(201).json({
+            success: true,
+            message: "courses created !",
+            course: course,
+          });
+        })
+        .catch((err) => {
+          return res.status(500).json({ success: false, message: err.message });
+        });
   } else {
     return res
       .status(500)

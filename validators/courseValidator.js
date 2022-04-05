@@ -25,7 +25,10 @@ const courseValidator = yup.object().shape({
       "others",
     ])
     .default("others"),
-  CourseImage: yup.string().notRequired(),
+  CourseImage: yup
+    .string()
+    .notRequired()
+    .default("1648931926897--téléchargement.jpg"),
 });
 const courseUpdateValidator = yup.object().shape({
   label: yup.string().min(4).max(15).trim().notRequired(),
