@@ -71,8 +71,6 @@ router.get("/course-teacher", auth, async (req, res) => {
 //add course
 router.post("/add", auth, upload, async (req, res) => {
   const teacher = await Teacher.findOne().where("user").equals(req.user.id);
-  console.log(req.file);
-  console.log(req.body);
   if (teacher) {
     req.body.teacher = teacher.id;
     if (req.file)
@@ -157,7 +155,7 @@ router.put(
   }
 );
 //delete
-router.delete("/delete-course/:id", auth, async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   const teacher = await Teacher.findOne().where("user").equals(req.user.id);
 
   if (!ObjectId.isValid(req.params.id)) {
@@ -173,10 +171,10 @@ router.delete("/delete-course/:id", auth, async (req, res) => {
         message: "could not find course",
       });
     }
-    if (course.teacher.toString() == teacher.id.toString()) {
+    if (course.teacher.toString() === teacher._id.toString()) {
       Course.deleteOne()
         .where("id")
-        .equals(course.id)
+        .equals(req.params.id)
         .then(() => {
           return res
             .status(200)
