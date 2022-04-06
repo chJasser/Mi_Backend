@@ -280,6 +280,7 @@ router.post(
             res.json({
               success: true,
               message: "product is added with success",
+              products:product
             });
 
             newrating = new Rate({

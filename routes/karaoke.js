@@ -13,10 +13,10 @@ router.post("/songs", (req, res) => {
           console.log(req.body.song);
           const rawData = JSON.parse(data);
           const searchedSong = rawData.filter((song) =>
-            song.Song.startsWith(req.body.song)
+            song.Song.includes(req.body.song)
           );
 
-          return res.json(searchedSong.slice(0, 10));
+          return res.json(searchedSong);
         } catch (error) {
           return res.json(error);
         }

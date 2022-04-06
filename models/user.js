@@ -62,7 +62,7 @@ const UserSchema = new Schema(
     status: {
       type: String,
       enum: ["Pending", "Active"],
-      default: "Active",
+      default: "Pending",
     },
     confirmationCode: {
       type: String,
