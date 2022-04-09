@@ -110,6 +110,7 @@ router.post("/add", auth, upload, async (req, res) => {
 router.put(
   "/update-course/:id",
   auth,
+  upload,
   validate(courseUpdateValidator),
   async (req, res) => {
     if (!ObjectId.isValid(req.params.id)) {
@@ -126,21 +127,39 @@ router.put(
         .where("_id")
         .equals(req.params.id);
       if (courseToUpdate.teacher.toString() == teacher.id.toString()) {
-        Course.findByIdAndUpdate(req.params.id, {
-          $set: { ...req.body },
-        })
-          .then((course) => {
-            return res.status(200).json({
-              success: true,
-              message: "course updated",
-            });
+        if (req.file) {
+          Course.findByIdAndUpdate(req.params.id, {
+            $set: { ...req.body, CourseImage: req.file.filename },
           })
-          .catch((err) => {
-            return res.status(500).json({
-              success: false,
-              message: "course did not update error :" + err.message,
+            .then(() => {
+              return res.status(200).json({
+                success: true,
+                message: "course updated",
+              });
+            })
+            .catch((err) => {
+              return res.status(500).json({
+                success: false,
+                message: "course did not update error :" + err.message,
+              });
             });
-          });
+        } else {
+          Course.findByIdAndUpdate(req.params.id, {
+            $set: { ...req.body },
+          })
+            .then(() => {
+              return res.status(200).json({
+                success: true,
+                message: "course updated",
+              });
+            })
+            .catch((err) => {
+              return res.status(500).json({
+                success: false,
+                message: "course did not update error :" + err.message,
+              });
+            });
+        }
       } else {
         return res.status(500).json({
           success: false,
@@ -383,9 +402,6 @@ router.get("/details", async (req, res) => {
   }
 
   res.status(200).json({ maxprice, minprice, maxduration, minduration });
-});
-router.post("/upload", upload, (req, res) => {
-  res.send("sccues");
 });
 /**
  *
