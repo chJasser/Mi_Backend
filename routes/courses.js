@@ -120,7 +120,7 @@ router.put(
       });
     }
     //get teacher related to the user logged in
-    const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+    const teacher = await Teacher.findOne({ user: req.user.id });
     if (teacher) {
       //get Courses with the id related to the teacher
       let courseToUpdate = await Course.findOne()
@@ -175,39 +175,29 @@ router.put(
 );
 //delete
 router.delete("/:id", auth, async (req, res) => {
-  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
-
-  if (!ObjectId.isValid(req.params.id)) {
+  const teacher = await Teacher.findOne({ user: req.user.id });
+  const course = await Course.findOne({ _id: req.params.id });
+  if (!course) {
     return res.status(500).json({
       success: false,
-      message: "invalid ID",
+      message: "could not find course",
     });
+  }
+  if (course.teacher.toString() === teacher._id.toString()) {
+    Course.findByIdAndDelete(req.params.id)
+      .then(() => {
+        return res
+          .status(200)
+          .json({ success: true, message: "deleted successfully !" });
+      })
+      .catch((err) => {
+        return res.status(400).json({ success: false, message: err.message });
+      });
   } else {
-    const course = await Course.findOne().where("id").equals(req.params.id);
-    if (!course) {
-      return res.status(500).json({
-        success: false,
-        message: "could not find course",
-      });
-    }
-    if (course.teacher.toString() === teacher._id.toString()) {
-      Course.deleteOne()
-        .where("id")
-        .equals(req.params.id)
-        .then(() => {
-          return res
-            .status(200)
-            .json({ success: true, message: "deleted successfully !" });
-        })
-        .catch((err) => {
-          return res.status(400).json({ success: false, message: err.message });
-        });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "you're not allowed to delete this course",
-      });
-    }
+    return res.status(400).json({
+      success: false,
+      message: "you're not allowed to delete this course",
+    });
   }
 });
 
