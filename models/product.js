@@ -21,6 +21,7 @@ const ProductSchema = new Schema(
         "brass",
         "percussions",
         "woodwind",
+        "guitarElectrique",
         "others",
       ],
       required: true,
@@ -80,6 +81,10 @@ const ProductSchema = new Schema(
     discountPercent: {
       type: Number,
       default: 0,
+    },
+    color:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Color"
     },
   },
   { timestamps: true }

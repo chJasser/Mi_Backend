@@ -14,8 +14,18 @@ const {
   TrustProductsEvaluationsContext,
 } = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
 const Rate = require("../models/rate");
-
+const fs = require('fs');
 const Rateuser = require("../models/rateuser");
+const Color = require("../models/color");
+
+// router.get(
+//   "/getProductByColor",
+//   (req, res) => {
+//     Product.find({ components: req.body.components })
+//     .then((products) => res.json(products))
+//     .catch(err => res.json(err.message))
+//   }
+// )
 
 router.get("/all-products", (req, res) => {
   Product.find()
@@ -241,7 +251,7 @@ router.get("/my-products", [auth], async (req, res) => {
 });
 
 router.post(
-  "/add-product",
+  "/add-product/:id",
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
   (req, res) => {
@@ -270,25 +280,30 @@ router.post(
             description: req.body.description,
             productImage: filesarray,
             discountPercent: req.body.discountPercent,
+            color : req.params.id
           });
 
           newproduct.save(function (err, product) {
             if (err) {
               console.log(err.message);
               res.json({ success: false, message: err.message });
-            }
+            } else {
             res.json({
               success: true,
               message: "product is added with success",
-              products:product
+              products: product,
             });
-
+            //Color.findById(req.params.id).then(c => c.product = product._id)
+            //Color.findById(req.params.id).then(c => console.log(c))
+            Color.findOneAndUpdate({_id: req.params.id},{$set:{piano: "black"}}).then(c => console.log(c));
+            //Color.findByIdAndUpdate(req.params.id, {$set:{piano: "black"}}).then(c => console.log(c));
+          
             newrating = new Rate({
               nbrpeople: 1,
               rating: 1,
               product: product._id,
             });
-            newrating.save(newrating).then((savedrating) => {});
+            newrating.save(newrating).then((savedrating) => {});}
           });
         }
       })
@@ -299,6 +314,169 @@ router.post(
       });
   }
 );
+
+router.post(
+  "/add-color",
+  [auth, verifyTokenSeller],
+  (req, res) => {
+
+    const {
+      face,
+      body,
+      chords,
+      upper,
+      circulos,
+      piano,
+      keys,
+      hinges,
+      stick
+    } = req.body;
+    let pr = {}
+    const product = Product.findOne().then(p => {
+   // console.log(product)
+    const colors = new Color({product: p._id});
+    if (face) colors.face = face;
+    if (body) colors.body = body;
+    if (chords) colors.chords = chords;
+    if (upper) colors.upper = upper;
+    if (circulos) colors.circulos = circulos;
+    if (piano) colors.piano = piano;
+    if (keys) colors.keys = keys;
+    if (hinges) colors.hinges = hinges;
+    if (stick) colors.stick = stick;
+    
+
+    colors.save(colors).then((savedColor) => {
+    //   console.log(savedColor._id)
+    // Product.findByIdAndUpdate(req.params.id, 
+    //   {$set: {color: savedColor._id}})
+    res.json(savedColor)
+    }).catch(err => console.log(err.message))
+  }
+)
+  })
+router.get("/custom-filter",
+      //[auth, verifyTokenSeller],
+      (req, res) => {
+        // var { face, body, chords } = req.query;
+        
+        // console.log(face)
+        // console.log(body)
+        // console.log(chords)
+        //res.json(colors)
+
+
+      })
+  //       var {face, body, chords, circulos, piano, keys, stick, hinges, upper } =
+  //       req.body;
+
+  //       let colorFiler = {}
+  //       if (face) colorFiler.face = face;
+  //       if (body) colorFiler.body = body;
+  //       if (chords) colorFiler.chords = chords;
+  //       if (circulos) colorFiler.circulos = circulos;
+  //       if (piano) colorFiler.piano = piano;
+  //       if (keys) colorFiler.keys = keys;
+  //       if (stick) colorFiler.stick = stick;
+  //       if (hinges) colorFiler.hinges = hinges;
+  //       if (upper) colorFiler.upper = upper;
+
+  //       //if(!colorFiler)
+          
+  //       Color.find(colorFiler)
+  //     //)
+
+    
+  //   if (!Productfeilds) {
+  //     Product.find().then((products) => res.json(products));
+  //   } else {
+  //     Product.find(Productfeilds)
+  //       .where("price")
+  //       .gte(minP)
+  //       .lte(maxP)
+  //       .then((result) => {
+  //         res.status(200).json({ products: result });
+  //       });
+  //   }
+  // });
+
+
+
+
+router.post(
+  "/add-product-color",
+  [auth, verifyTokenSeller],
+  multerUpload.array("files"),
+  (req, res) => {
+    Seller.findOne({ user: req.user._id })
+      .then((sellers) => {
+        if (!sellers) {
+          res.status(500).json({
+            success: false,
+            message: "can't find a seller account related to this user",
+          });
+        } else {
+          let filesarray = [];
+          req.files.forEach((element) => {
+            filesarray.push(element.path);
+          });
+
+          
+
+          
+          colors.save().then((savedColor) => {
+              const newproduct = new Product({
+              label: req.body.label,
+              category: req.body.category,
+              marque: req.body.marque,
+              price: req.body.price,
+              reference: req.body.reference,
+              state: req.body.state,
+              type: req.body.type,
+              seller: sellers._id,
+              description: req.body.description,
+              productImage: filesarray,
+              discountPercent: req.body.discountPercent,
+              color: savedColor._id
+            });
+            console.log(face)
+            console.log(savedColor)
+            newproduct.save(function (err, product) {
+              if (err) {
+                console.log(err.message);
+                res.json({ success: false, message: err.message });
+              }
+              res.json({
+                success: true,
+                message: "product is added with success",
+                products: product,
+              });
+  
+              newrating = new Rate({
+                nbrpeople: 1,
+                rating: 1,
+                product: product._id,
+              });
+              newrating.save(newrating).then((savedrating) => {});
+            });
+          }).catch((err) => {
+            if (err) {
+              res.json({ msg: err.message });
+            }
+          }); 
+        }
+      })
+      .catch((err) => {
+        if (err) {
+          res.json({ msg: err.message });
+        }
+      });
+  }
+);
+
+
+
+
 router.get("/getrating/:id", (req, res) => {
   Product.findById(req.params.id).then((product) => {
     if (!product) {
@@ -319,7 +497,7 @@ router.get("/getrating/:id", (req, res) => {
 //         res.json(1);
 //       }
 //     );
-  
+
 //   }
 //   else if(!rateu){
 //   newrateuser = new Rateuser({
@@ -330,7 +508,7 @@ router.get("/getrating/:id", (req, res) => {
 // })
 // newrateuser.save(newrateuser,(err,savedrate)=>{
 //   Rateuser.find({product:req.params.id}).then((products)=>{
-        
+
 //     var allrating=0;
 //     products.forEach((product)=>{
 //      allrating+= product.rate;
@@ -439,7 +617,38 @@ router.put("/rating/:id", auth, (req, res) => {
     });
 });
 
-//
+// router.put(
+//   "/updateImgProduct/:id",
+//   [auth, verifyTokenSeller],
+//   multerUpload.array("files"),
+//   async (req, res) => {
+//     const seller = await Seller.findOne().where("user").equals(req.user._id);
+//     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+//       return res.status(500).json("Object missing");
+//     } else {
+//       if (!seller) {
+//         res.status(500).json({
+//           success: false,
+//           message: "can't find a seller account related to this user",
+//         });
+//       } else {
+//         Seller.findByIdAndUpdate(
+//           req.params.id,
+//           { $set: { productImage: req.files.path } },
+//           { useFindAndModify: false },
+//           (err, data) => {
+//             if (err) {
+//               res.status(500).json({ success: false, message: err.message });
+//             } else {
+//               res.status(200).json({ success: true, image: req.file.path });
+//             }
+//           }
+//         );
+//       }
+//     }
+//   }
+// );
+
 router.put(
   "/update-product/:id",
   [auth, verifyTokenSeller],
@@ -453,10 +662,12 @@ router.put(
       });
     } else {
       let filesarray = [];
-
-      req.files.forEach((element) => {
-        filesarray.push(element.path);
-      });
+      if(req.files !== undefined) {
+        req.files.forEach((element) => {
+          filesarray.push(element.path);
+          console.log(element.path)
+        });
+      }
       const {
         label,
         category,
@@ -476,7 +687,7 @@ router.put(
       if (state) Productfeilds.state = state;
       if (type) Productfeilds.type = type;
       if (description) Productfeilds.description = description;
-      if (req.files) Productfeilds.productImage = filesarray;
+      if(req.files !== undefined){  if (req.files) Productfeilds.productImage = filesarray;}
 
       Product.findById(req.params.id)
         .then((product) => {
