@@ -353,12 +353,13 @@ router.put("/rating/:id", auth, (req, res) => {
                   };
                   Rate.findOne({ product: req.params.id }).then((product) => {
                     if (!product) {
-                      newrating = new Rate({
+                    const  newrating1 = new Rate({
                         nbrpeople: 1,
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating.save(newrating).then((savedrating) => {});
+                      newrating1.save(newrating1).then((savedrating) => {});
+                      Product.findByIdAndUpdate(product._id,{$set:{rate:req.body.rate}})
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -367,7 +368,9 @@ router.put("/rating/:id", auth, (req, res) => {
                           res.json(Rateupdated);
                         }
                       );
+                      Product.findByIdAndUpdate(product._id,{$set:{rate:rates}})
                     }
+                    
                   });
                 });
               });
@@ -393,12 +396,13 @@ router.put("/rating/:id", auth, (req, res) => {
 
                   Rate.findOne({ product: req.params.id }).then((product) => {
                     if (!product) {
-                      newrating = new Rate({
+                     const newrating2 = new Rate({
                         nbrpeople: 1,
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating.save(newrating).then((savedrating) => {});
+                      newrating2.save(newrating2).then((savedrating) => {});
+                      Product.findByIdAndUpdate(product._id,{$set:{rate:req.body.rate}});
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -407,6 +411,7 @@ router.put("/rating/:id", auth, (req, res) => {
                           res.json(Rateupdated);
                         }
                       );
+                      Product.findByIdAndUpdate(product._id,{$set:{rate:rates}})
                     }
                   });
                 });
