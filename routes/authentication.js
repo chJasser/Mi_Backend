@@ -77,7 +77,7 @@ router.post("/register", [userValidator], async (req, res) => {
           res.status(200).json({
             message:
               "User was registered successfully! Please check your email",
-            user_id: user._id
+            user_id: user._id,
           });
 
           sendConfirmationEmail(
@@ -191,7 +191,7 @@ router.put("/resetpassword/:email", async (req, res) => {
         if (err) {
           console.error(err);
         } else {
-          res.status(200).json({ success: true, email: data.email })
+          res.status(200).json({ success: true, email: data.email });
           resetPassword(
             user.lastName + " " + user.firstName,
             user.email,
@@ -331,9 +331,9 @@ router.get(
               const tokenForNewUser = issueJWT(done);
               res.redirect(
                 "http://localhost:3000/mi/passport/register/?id=" +
-                done._id +
-                "&token=" +
-                tokenForNewUser.token
+                  done._id +
+                  "&token=" +
+                  tokenForNewUser.token
               );
             }
           });
@@ -400,9 +400,9 @@ router.get(
               const tokenForNewUser = issueJWT(done);
               res.redirect(
                 "http://localhost:3000/mi/passport/register/?id=" +
-                done._id +
-                "&token=" +
-                tokenForNewUser.token
+                  done._id +
+                  "&token=" +
+                  tokenForNewUser.token
               );
             }
           });
@@ -455,9 +455,9 @@ router.get(
               const tokenForNewUser = issueJWT(done);
               res.redirect(
                 "http://localhost:3000/mi/passport/register/?id=" +
-                done._id +
-                "&token=" +
-                tokenForNewUser.token
+                  done._id +
+                  "&token=" +
+                  tokenForNewUser.token
               );
             }
           });

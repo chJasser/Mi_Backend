@@ -310,19 +310,35 @@ router.get("/getrating/:id", (req, res) => {
     }
   });
 });
-router.get("/getratingbyuser/:id", auth, (req, res) => {
-  Rateuser.findOne({ user: req.user._id, product: req.params.id })
-    .then((rate) => {
-      if (rate) {
-        res.json(rate);
-      } else {
-        res.json(1);
-      }
-    })
-    .catch((err) => {
-      return res.status(500).json(err.message);
-    });
-});
+// router.get("/getratingbyuser/:id", auth, (req, res) => {
+//   Rateuser.findOne({ user: req.user._id, product: req.params.id })
+//     .then((rate) => {
+//       if (rate) {
+//         res.json(rate);
+//       } else {
+//         res.json(1);
+//       }
+//     );
+  
+//   }
+//   else if(!rateu){
+//   newrateuser = new Rateuser({
+//  user:req.user._id,
+//  product:req.params.id,
+//  rate:req.body.rate,
+
+// })
+// newrateuser.save(newrateuser,(err,savedrate)=>{
+//   Rateuser.find({product:req.params.id}).then((products)=>{
+        
+//     var allrating=0;
+//     products.forEach((product)=>{
+//      allrating+= product.rate;
+//     })
+//     .catch((err) => {
+//       return res.status(500).json(err.message);
+//     });
+// });
 ///
 
 ///
