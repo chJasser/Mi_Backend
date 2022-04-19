@@ -21,7 +21,6 @@ const calculateOrderAmount = (items) => {
 
 router.post("/create-payment-intent", async (req, res) => {
     const { amount } = req.body;
-    console.log(amount);
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(calculateOrderAmount(amount)),
@@ -53,22 +52,22 @@ router.post("/add", auth, async (req, res) => {
 
 });
 
-router.get("/", auth, async (req, res) => {
-    console.log(req.body);
-    new paiment({ ...req.body })
-        .save()
-        .then((paiment) => {
-            return res.status(201).json({
-                success: true,
-                message: "paiment created !",
-                paiment: paiment,
-            });
-        })
-        .catch((err) => {
-            return res.status(500).json({ success: false, message: err.message });
-        });
+// router.get("/", auth, async (req, res) => {
+//     console.log(req.body);
+//     new paiment({ ...req.body })
+//         .save()
+//         .then((paiment) => {
+//             return res.status(201).json({
+//                 success: true,
+//                 message: "paiment created !",
+//                 paiment: paiment,
+//             });
+//         })
+//         .catch((err) => {
+//             return res.status(500).json({ success: false, message: err.message });
+//         });
 
-});
+// });
 
 router.get("/:id", [auth], async (req, res) => {
     try {

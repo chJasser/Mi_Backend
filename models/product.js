@@ -102,7 +102,7 @@ ProductSchema.plugin(mongooseAlgolia, {
   },
   mappings: {
     label: function (value) {
-      return `name: ${value}`;
+      return `${value}`;
     },
   },
   virtuals: {
@@ -118,6 +118,6 @@ ProductSchema.plugin(mongooseAlgolia, {
 let Model = mongoose.model("Product", ProductSchema);
 Model.SyncToAlgolia(); //Clears the Algolia index for this schema and synchronizes all documents to Algolia (based on the settings defined in your plugin settings)
 Model.SetAlgoliaSettings({
-  searchableAttributes: ["name", "properties", "shows"], //Sets the settings for this schema, see [Algolia's Index settings parameters](https://www.algolia.com/doc/api-client/javascript/settings#set-settings) for more info.
+  searchableAttributes: ["label", "likesCount", "category"], //Sets the settings for this schema, see [Algolia's Index settings parameters](https://www.algolia.com/doc/api-client/javascript/settings#set-settings) for more info.
 });
 module.exports = mongoose.model("Product", ProductSchema);
