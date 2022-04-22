@@ -52,22 +52,7 @@ router.post("/add", auth, async (req, res) => {
 
 });
 
-// router.get("/", auth, async (req, res) => {
-//     console.log(req.body);
-//     new paiment({ ...req.body })
-//         .save()
-//         .then((paiment) => {
-//             return res.status(201).json({
-//                 success: true,
-//                 message: "paiment created !",
-//                 paiment: paiment,
-//             });
-//         })
-//         .catch((err) => {
-//             return res.status(500).json({ success: false, message: err.message });
-//         });
 
-// });
 
 router.get("/:id", [auth], async (req, res) => {
     try {
@@ -79,6 +64,29 @@ router.get("/:id", [auth], async (req, res) => {
     } catch (error) {
         res.status(500).json(error.message);
     }
+});
+
+router.get("/", [auth], async (req, res) => {
+    try {
+        const invoices = await paiment.find({ customer: req.user._id }).populate("products");
+        if (!invoices) {
+            return res.status(500).json({ success: false, invoices: null });;
+        }
+        return res.status(200).json({ success: true, invoices: invoices });
+    } catch (error) {
+        res.status(500).json(error.message);
+    }
+});
+
+router.delete("/:id", [auth], async (req, res) => {
+    paiment.findByIdAndDelete(req.params.id, (err, result) => {
+        if (err) {
+            res.status(500).json({ success: false })
+        }
+        else {
+            res.status(200).json({ success: true })
+        }
+    })
 });
 
 module.exports = router;
