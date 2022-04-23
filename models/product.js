@@ -90,10 +90,7 @@ ProductSchema.plugin(mongooseAlgolia, {
   apiKey: "2a5deb3323c4edb2ecbcc46687c2c216",
   indexName: "products", //The name of the index in Algolia, you can also pass in a function
   selector: "-likesCount", //You can decide which field that are getting synced to Algolia (same as selector in mongoose)
-  populate: [{
-    path:"seller",
-    ref:"Seller"
-  }],
+  
     
   defaults: {
     author: "unknown",

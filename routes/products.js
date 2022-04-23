@@ -42,6 +42,19 @@ router.get("/product/:id", (req, res) => {
       res.status(500).json(err);
     });
 });
+router.get("/productlikes/:id", (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        res.status(404).send({ message: "product not found" });
+      } else {
+        res.status(200).json(product.likes);
+      }
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
 router.get("/seller/:id", (req, res) => {
   Seller.findById(req.params.id)
     .then((seller) => {
@@ -310,15 +323,35 @@ router.get("/getrating/:id", (req, res) => {
     }
   });
 });
-// router.get("/getratingbyuser/:id", auth, (req, res) => {
-//   Rateuser.findOne({ user: req.user._id, product: req.params.id })
-//     .then((rate) => {
-//       if (rate) {
-//         res.json(rate);
-//       } else {
-//         res.json(1);
-//       }
-//     );
+ router.get("/getratingbyuser/:id", auth, (req, res) => {
+  Rateuser.findOne({ user: req.user._id, product: req.params.id })
+    .then((rate) => {
+     if (rate) {
+        res.json(rate);
+      } else {
+         res.json(1);
+      }
+    }).catch((err) => {
+            return res.status(500).json(err.message);
+         });
+  
+  })
+  //  Top Rated Product
+router.get("/Topratedproducts",async (req,res)=>{
+  var toprated = await Rate.find().sort({ rating:-1 }).limit(10).populate("product");
+if(toprated){let products = [];
+  toprated.forEach((rated) => {
+    products.push(rated.product);
+  });
+  return res.json(products);}    else
+{res.status(500).json ({success:false,
+  message:"Products not found",
+  
+})}
+
+})
+
+
   
 //   }
 //   else if(!rateu){
@@ -369,13 +402,13 @@ router.put("/rating/:id", auth, (req, res) => {
                   };
                   Rate.findOne({ product: req.params.id }).then((product) => {
                     if (!product) {
-                    const  newrating1 = new Rate({
+                    const  newrating = new Rate({
                         nbrpeople: 1,
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating1.save(newrating1).then((savedrating) => {});
-                      Product.findByIdAndUpdate(product._id,{$set:{rate:req.body.rate}})
+                      newrating.save(newrating).then((savedrating) => {});
+                     
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -384,7 +417,7 @@ router.put("/rating/:id", auth, (req, res) => {
                           res.json(Rateupdated);
                         }
                       );
-                      Product.findByIdAndUpdate(product._id,{$set:{rate:rates}})
+                     
                     }
                     
                   });
@@ -412,13 +445,13 @@ router.put("/rating/:id", auth, (req, res) => {
 
                   Rate.findOne({ product: req.params.id }).then((product) => {
                     if (!product) {
-                     const newrating2 = new Rate({
+                     const newrating = new Rate({
                         nbrpeople: 1,
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating2.save(newrating2).then((savedrating) => {});
-                      Product.findByIdAndUpdate(product._id,{$set:{rate:req.body.rate}});
+                      newrating.save(newrating).then((savedrating) => {});
+                      
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -427,7 +460,7 @@ router.put("/rating/:id", auth, (req, res) => {
                           res.json(Rateupdated);
                         }
                       );
-                      Product.findByIdAndUpdate(product._id,{$set:{rate:rates}})
+                      
                     }
                   });
                 });
