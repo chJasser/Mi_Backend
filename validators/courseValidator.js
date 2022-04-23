@@ -1,7 +1,7 @@
 const yup = require("yup");
 const courseValidator = yup.object().shape({
-  label: yup.string().min(4).max(15).required().trim(),
-  description: yup.string().max(255).required().trim(),
+  label: yup.string().min(2).max(15).required().trim(),
+  description: yup.string().required().trim(),
   level: yup
     .string()
     .oneOf(["beginner", "intermediate", "advanced"])
@@ -10,8 +10,8 @@ const courseValidator = yup.object().shape({
     .string()
     .oneOf(["english", "french", "arabic"])
     .default("english"),
-  price: yup.number().positive().required(),
-  duration: yup.number().positive().required(),
+  price: yup.number().min(0).integer().required(),
+  duration: yup.number().min(0).integer().required(),
   category: yup
     .string()
     .oneOf([
@@ -25,18 +25,21 @@ const courseValidator = yup.object().shape({
       "others",
     ])
     .default("others"),
-  CourseImage: yup.string().notRequired(),
+  CourseImage: yup
+    .string()
+    .notRequired()
+    .default("1648931926897--téléchargement.jpg"),
 });
 const courseUpdateValidator = yup.object().shape({
-  label: yup.string().min(4).max(15).trim().notRequired(),
-  description: yup.string().max(255).trim().notRequired(),
+  label: yup.string().min(2).max(15).trim().notRequired(),
+  description: yup.string().trim().notRequired(),
   level: yup
     .string()
     .oneOf(["beginner", "intermediate", "advanced"])
     .notRequired(),
   languages: yup.string().oneOf(["english", "french", "arabic"]).notRequired(),
-  price: yup.number().positive().notRequired(),
-  duration: yup.number().positive().notRequired(),
+  price: yup.number().integer().min(0).notRequired(),
+  duration: yup.number().integer().min(0).notRequired(),
   category: yup
     .string()
     .oneOf([
