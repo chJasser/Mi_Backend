@@ -88,7 +88,6 @@ function onListening() {
  * set up streaming
  */
 const cors = require("cors");
-const { v4: uuidV4 } = require("uuid");
 
 const io = require("socket.io")(server, {
   cors: {
@@ -121,5 +120,4 @@ io.on("connection", (socket) => {
     socket.emit("room-created", roomInfo);
     console.log("room created ", roomInfo.creator);
   });
-
 });
