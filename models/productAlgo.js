@@ -85,21 +85,27 @@ const ProductSchema = new Schema(
   },
   { timestamps: true }
 );
+
 ProductSchema.plugin(mongooseAlgolia, {
   appId: "JYOOTSXUAV",
-  apiKey: "607df58d5f3a16069803d84e67f13b1f",
+  apiKey: "0801282406a774008c5217f0d6da821a",
   indexName: "prod_NAME", //The name of the index in Algolia, you can also pass in a function
   selector: "-likesCount", //You can decide which field that are getting synced to Algolia (same as selector in mongoose)
-  populate: [
-    {
-      path: "seller",
-      ref: "Seller",
-    },
-    { path: "reviews", ref: "ProductReview", select: "user" },
-  ],
+  populate: {
+    path: "reviews",
+    select: "user",
+  },
+  defaults: {
+    author: "unknown",
+  },
   mappings: {
     label: function (value) {
-      return `${value}`;
+      return `name: ${value}`;
+    },
+  },
+  virtuals: {
+    whatever: function (doc) {
+      return `Custom data ${doc.title}`;
     },
   },
   filter: function (doc) {
@@ -107,9 +113,10 @@ ProductSchema.plugin(mongooseAlgolia, {
   },
   debug: true, // Default: false -&gt; If true operations are logged out in your console
 });
-let Model = mongoose.model("Product", ProductSchema);
+
+let Model = mongoose.model("productalgo", ProductSchema);
+
 Model.SyncToAlgolia(); //Clears the Algolia index for this schema and synchronizes all documents to Algolia (based on the settings defined in your plugin settings)
 Model.SetAlgoliaSettings({
-  searchableAttributes: ["label", "likesCount", "category"], //Sets the settings for this schema, see [Algolia's Index settings parameters](https://www.algolia.com/doc/api-client/javascript/settings#set-settings) for more info.
+  searchableAttributes: ["name", "properties", "shows"], //Sets the settings for this schema, see [Algolia's Index settings parameters](https://www.algolia.com/doc/api-client/javascript/settings#set-settings) for more info.
 });
-module.exports = mongoose.model("Product", ProductSchema);

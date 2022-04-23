@@ -62,7 +62,7 @@ app.use("/data/image", express.static("coursedata/images/"));
  ***
  ***/
 // routes
-
+const streamingRouter = require("./bin/stream");
 const authenticationRouter = require("./routes/authentication");
 const adminRouter = require("./routes/admins");
 const chapterRouter = require("./routes/chapters");
@@ -122,7 +122,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-
+app.use("/stream", streamingRouter);
 /*
  **
  **
