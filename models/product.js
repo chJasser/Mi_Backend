@@ -102,7 +102,6 @@ ProductSchema.plugin(mongooseAlgolia, {
       return `${value}`;
     },
   },
-
   filter: function (doc) {
     return !doc.softdelete;
   },

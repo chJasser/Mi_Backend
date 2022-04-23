@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 const Seller = require("../models/seller");
 const { auth, issueJWT } = require("../lib/utils");
-const { verifyTokenSeller } = require("../middleware/verifyToken");
+const { verifyTokenSeller, verifyTokenAdmin } = require("../middleware/verifyToken");
 const User = require("../models/user");
 const { sellerValidator } = require("../validators/sellerValidator");
 const { validationResult } = require("express-validator");
@@ -108,5 +108,11 @@ router.get("/get-most-liked-products", async (req, res) => {
       products: "no products were found",
     });
   }
+});
+
+router.get("/get-all-sellers", [auth, verifyTokenAdmin], async (req, res) => {
+  const sellers = await Seller.find({}).populate("user");
+  if (!sellers.length) return res.status(404).json("no sellers found");
+  res.json(sellers);
 });
 module.exports = router;

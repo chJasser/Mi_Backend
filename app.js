@@ -1,3 +1,4 @@
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 1;
 require("dotenv").config();
 const createError = require("http-errors");
 const express = require("express");
@@ -9,6 +10,7 @@ const logger = require("morgan");
 const cookieSession = require("cookie-session");
 const cors = require("cors");
 const flash = require("connect-flash");
+const fetch = require("node-fetch");
 /**
  *
  *
@@ -78,6 +80,8 @@ const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
 const courseRateRouter = require("./routes/rateCourses");
 const karaokeRouter = require("./routes/karaoke");
+const payment = require("./routes/payment");
+const { sendKaraokeInv } = require("./lib/utils");
 /*
  **
  **
@@ -148,6 +152,7 @@ app.use("/resources", resourceRouter);
 app.use("/chapters", chapterRouter);
 app.use("/users", usersRouter);
 app.use("/rate-course", courseRateRouter);
+app.use("/payment", payment);
 app.use("/uploads", express.static("uploads"));
 /*
 **
@@ -161,6 +166,117 @@ app.use("/uploads", express.static("uploads"));
 ***
 ***
 ***/
+
+
+
+/*****
+ * 
+ * daily
+ */
+
+const API_KEY = process.env.daily_API_KEY;
+
+const headers = {
+  Accept: "application/json",
+  "Content-Type": "application/json",
+  Authorization: "Bearer " + API_KEY,
+};
+
+const createToken = (room) => {
+  return fetch("https://api.daily.co/v1/meeting-tokens", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      properties: {
+        room_name: room,
+      },
+    }),
+  })
+    .then((res) => res.json())
+    .then((json) => {
+      return json;
+    })
+    .catch((err) => console.log("error:" + err));
+};
+
+
+app.post("/create-token/:roomId", async (req, res) => {
+  const room = req.params.roomId
+  const token = await createToken(room);
+  if (token) {
+    res.status(200).json({ status: true, token: token.token });
+
+  }
+  else {
+    res.status(400).json({ status: false, message: "no token provided" });
+
+  }
+})
+
+app.post("/karaokeinvi", async (req, res) => {
+  const { name, email, token, room } = req.body;
+  if (!token || !name || !email || !room) {
+    return res.status(500).json({ status: false, message: "Unable to send email" });
+  }
+  else {
+    sendKaraokeInv(name, email, token, room)
+    return res.status(200).json({ status: true, message: "Invitation sent successfully" });
+  }
+})
+
+
+
+
+
+const getRoom = (room) => {
+
+  return fetch(`https://api.daily.co/v1/rooms/${room}`, {
+    method: "GET",
+    headers,
+  })
+    .then((res) => res.json())
+    .then((json) => {
+      return json;
+    })
+    .catch((err) => console.error("error:" + err));
+};
+
+const createRoom = (room) => {
+  return fetch("https://api.daily.co/v1/rooms", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      name: room,
+      privacy: "private",
+      properties: {
+        enable_screenshare: true,
+        enable_chat: true,
+        start_video_off: true,
+        start_audio_off: false,
+        lang: "en",
+      },
+    }),
+  })
+    .then((res) => res.json())
+    .then((json) => {
+      return json;
+    })
+    .catch((err) => console.log("error:" + err));
+};
+
+app.get("/video-call/:id", async function (req, res) {
+  const roomId = req.params.id;
+  const room = await getRoom(roomId);
+  if (room.error) {
+    const newRoom = await createRoom(roomId);
+    res.status(200).send(newRoom);
+  } else {
+    res.status(200).send(room);
+  }
+});
+/********************************
+ * 
+ */
 app.use("/", (req, res) => {
   res.status(400).send("404 Not found");
 });
