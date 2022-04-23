@@ -13,6 +13,7 @@ const ResourceSchema = new Schema(
     },
     path: {
       type: String,
+      required: true,
     },
     chapter: {
       type: mongoose.Schema.Types.ObjectId,

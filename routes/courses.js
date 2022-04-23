@@ -30,19 +30,8 @@ router.get("/get-courses", (req, res) => {
     });
 });
 router.get("/get-course/:id", (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid ID",
-    });
-  }
-  Course.aggregate()
-    .addFields({ subscribers: { $size: ["$students"] } })
-    .match({ _id: req.params.id })
-    .then((course) => {
-      if (!course) res.status(204).json("no content");
-      res.status(200).json(course);
-    })
+  Course.findById(req.params.id)
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.status(400).json(err));
 });
 

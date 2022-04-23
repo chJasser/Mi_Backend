@@ -1,7 +1,7 @@
 const yup = require("yup");
 const courseValidator = yup.object().shape({
   label: yup.string().min(2).max(15).required().trim(),
-  description: yup.string().max(255).required().trim(),
+  description: yup.string().required().trim(),
   level: yup
     .string()
     .oneOf(["beginner", "intermediate", "advanced"])
@@ -32,7 +32,7 @@ const courseValidator = yup.object().shape({
 });
 const courseUpdateValidator = yup.object().shape({
   label: yup.string().min(2).max(15).trim().notRequired(),
-  description: yup.string().max(255).trim().notRequired(),
+  description: yup.string().trim().notRequired(),
   level: yup
     .string()
     .oneOf(["beginner", "intermediate", "advanced"])
