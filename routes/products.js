@@ -14,7 +14,7 @@ const {
   TrustProductsEvaluationsContext,
 } = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
 const Rate = require("../models/rate");
-const fs = require('fs');
+const fs = require("fs");
 const Rateuser = require("../models/rateuser");
 const Color = require("../models/color");
 
@@ -280,7 +280,7 @@ router.post(
             description: req.body.description,
             productImage: filesarray,
             discountPercent: req.body.discountPercent,
-            color : req.params.id
+            color: req.params.id,
           });
 
           newproduct.save(function (err, product) {
@@ -288,23 +288,24 @@ router.post(
               console.log(err.message);
               res.json({ success: false, message: err.message });
             } else {
-            res.json({
-              success: true,
-              message: "product is added with success",
-              products: product,
-            });
-            //Color.findById(req.params.id).then(c => c.product = product._id)
-            //Color.findById(req.params.id).then(c => console.log(c))
-            Color.findOneAndUpdate({_id: req.params.id},{$set:{piano: "black"}}).then(c => console.log(c));
-            //Color.findByIdAndUpdate(req.params.id, {$set:{piano: "black"}}).then(c => console.log(c));
-          
-            newrating = new Rate({
-              nbrpeople: 1,
-              rating: 1,
-              product: product._id,
-            });
-            newrating.save(newrating).then((savedrating) => {});}
+              res.json({
+                success: true,
+                message: "product is added with success",
+                products: product,
+              });
+
+              newrating = new Rate({
+                nbrpeople: 1,
+                rating: 1,
+                product: product._id,
+              });
+              newrating.save(newrating).then((savedrating) => {});
+            }
           });
+          Color.findOneAndUpdate(
+            { _id: req.params.id },
+            { $set: { product: newproduct._id } }
+          ).then((c) => console.log(c));
         }
       })
       .catch((err) => {
@@ -315,26 +316,13 @@ router.post(
   }
 );
 
-router.post(
-  "/add-color",
-  [auth, verifyTokenSeller],
-  (req, res) => {
-
-    const {
-      face,
-      body,
-      chords,
-      upper,
-      circulos,
-      piano,
-      keys,
-      hinges,
-      stick
-    } = req.body;
-    let pr = {}
-    const product = Product.findOne().then(p => {
-   // console.log(product)
-    const colors = new Color({product: p._id});
+router.post("/add-color", [auth, verifyTokenSeller], (req, res) => {
+  const { face, body, chords, upper, circulos, piano, keys, hinges, stick } =
+    req.body;
+  let pr = {};
+  const product = Product.findOne().then((p) => {
+    // console.log(product)
+    const colors = new Color({ product: p._id });
     if (face) colors.face = face;
     if (body) colors.body = body;
     if (chords) colors.chords = chords;
@@ -344,64 +332,203 @@ router.post(
     if (keys) colors.keys = keys;
     if (hinges) colors.hinges = hinges;
     if (stick) colors.stick = stick;
-    
 
-    colors.save(colors).then((savedColor) => {
-    //   console.log(savedColor._id)
-    // Product.findByIdAndUpdate(req.params.id, 
-    //   {$set: {color: savedColor._id}})
-    res.json(savedColor)
-    }).catch(err => console.log(err.message))
-  }
-)
-  })
-router.get("/custom-filter",
-      //[auth, verifyTokenSeller],
-      (req, res) => {
-        // var { face, body, chords } = req.query;
-        
-        // console.log(face)
-        // console.log(body)
-        // console.log(chords)
-        //res.json(colors)
-
-
+    colors
+      .save(colors)
+      .then((savedColor) => {
+        res.json(savedColor);
       })
-  //       var {face, body, chords, circulos, piano, keys, stick, hinges, upper } =
-  //       req.body;
+      .catch((err) => console.log(err.message));
+  });
+});
 
-  //       let colorFiler = {}
-  //       if (face) colorFiler.face = face;
-  //       if (body) colorFiler.body = body;
-  //       if (chords) colorFiler.chords = chords;
-  //       if (circulos) colorFiler.circulos = circulos;
-  //       if (piano) colorFiler.piano = piano;
-  //       if (keys) colorFiler.keys = keys;
-  //       if (stick) colorFiler.stick = stick;
-  //       if (hinges) colorFiler.hinges = hinges;
-  //       if (upper) colorFiler.upper = upper;
+function search(list) {
+  let array = [];
+  const promises = list.map((color) => {
+    Product.findById(color.product);
+  });
+  console.log(promises);
+  return promises;
+}
 
-  //       //if(!colorFiler)
-          
-  //       Color.find(colorFiler)
-  //     //)
+async function color(list) {
+  const promises = await list.map((color) => {
+    Product.findById(color.product);
+    console.log(color);
+  });
 
-    
-  //   if (!Productfeilds) {
-  //     Product.find().then((products) => res.json(products));
-  //   } else {
-  //     Product.find(Productfeilds)
-  //       .where("price")
-  //       .gte(minP)
-  //       .lte(maxP)
-  //       .then((result) => {
-  //         res.status(200).json({ products: result });
-  //       });
-  //   }
-  // });
+  const arr = await Promise.all(promises);
+  console.log(arr);
+  return arr;
+}
 
+function getProducts(colors) {
+  let promiseList = colors.map(
+    async (color, i) => await Product.findById(color.product).exec()
+  );
+  let products = [];
+  Promise.all(promiseList).then((productList) => {
+    //let result = productList.reduce((acc,product)=> products.push(product));
 
+    console.log(productList);
+    products = productList;
+  });
+  return products;
+}
 
+router.post("/custom-products", async (req, res) => {
+  const colors = req.body;
+
+  let promiseList = colors.map(
+    async (color, i) => await Product.findById(color.product).exec()
+  );
+  let products = [];
+  Promise.all(promiseList).then((productList) => {
+    //let result = productList.reduce((acc,product)=> products.push(product));
+
+    //console.log(productList);
+    products = productList;
+    res.json(productList);
+  });
+});
+
+router.post("/custom", (req, res) => {
+  const {
+    face,
+    body,
+    chords,
+    upper,
+    circulos,
+    piano,
+    keys,
+    hinges,
+    stick,
+    circulosDrum,
+  } = req.body;
+  const category = req.query.category;
+  let colors = {};
+  if (face) colors.face = face;
+  if (body) colors.body = body;
+  if (chords) colors.chords = chords;
+  if (upper) colors.upper = upper;
+  if (circulos) colors.circulos = circulos;
+  if (piano) colors.piano = piano;
+  if (keys) colors.keys = keys;
+  if (hinges) colors.hinges = hinges;
+  if (stick) colors.stick = stick;
+  if (circulosDrum) colors.circulosDrum = circulosDrum;
+
+  var listeFiltre = [];
+  //const products = Product.find().then((products) => res.json(products)).catch(err => console.log(err.message));
+
+  if (!colors)
+    res.json(
+      Product.find()
+        .then((products) => res.json(products))
+        .catch((err) => console.log(err.message))
+    );
+
+  let result = [];
+  if (colors.face) {
+    Color.find({
+      $or: [
+        { face: colors.face },
+        { chords: colors.chords },
+        { body: colors.body },
+      ],
+    })
+      .then((list) => {
+        console.log(list);
+        res.json(list);
+      })
+      .catch((err) => console.log(err.message));
+  } else if (colors.piano) {
+    Color.find({
+      $or: [
+        { piano: colors.piano },
+        { keys: colors.keys },
+        { hinges: colors.hinges },
+      ],
+    })
+      .then((list) => {
+        console.log(list);
+        res.json(list);
+      })
+      .catch((err) => console.log(err.message));
+  } else if (colors.upper) {
+    Color.find({
+      $or: [
+        { face: colors.face },
+        { chords: colors.chords },
+        { upper: colors.upper },
+        { circulos: colors.circulos },
+      ],
+    })
+      .then((list) => {
+        console.log(list);
+        res.json(list);
+      })
+      .catch((err) => console.log(err.message));
+  } else if (colors.stick) {
+    Color.find({
+      $or: [{ body: colors.body }, { stick: colors.stick }],
+    })
+      .then((list) => {
+        console.log(list);
+        res.json(list);
+      })
+      .catch((err) => console.log(err.message));
+  } else if (colors.circulosDrum) {
+    Color.find({
+      $or: [{ circulosDrum: colors.circulosDrum }],
+    })
+      .then((list) => {
+        console.log(list);
+        res.json(list);
+      })
+      .catch((err) => console.log(err.message));
+  }
+});
+
+router.get(
+  "/custom-filter",
+  //[auth, verifyTokenSeller],
+  (req, res) => {
+    var { face, body, chords } = req.query;
+
+    console.log(face);
+    console.log(body);
+    console.log(chords);
+    //res.json(colors)
+    let listeFiltre = [];
+    Product.find()
+      .then((list) => {
+        list.forEach((p) => {
+          let id_color;
+          if (p.color) id_color = p.color;
+          Color.findById(id_color)
+            .then((c) => {
+              console.log(c);
+              if (c) {
+                if (c.face === face || c.body === body || c.chords === chords) {
+                  console.log(p);
+                  listeFiltre.push(p);
+                } else {
+                  res.json({
+                    success: false,
+                    message: "No match",
+                    products: list,
+                  });
+                }
+              }
+            })
+            .catch((err) => console.log(err.message));
+        });
+        res.json(listeFiltre);
+      })
+      .catch((err) => console.log(err.message));
+  }
+);
 
 router.post(
   "/add-product-color",
@@ -421,49 +548,49 @@ router.post(
             filesarray.push(element.path);
           });
 
-          
-
-          
-          colors.save().then((savedColor) => {
+          colors
+            .save()
+            .then((savedColor) => {
               const newproduct = new Product({
-              label: req.body.label,
-              category: req.body.category,
-              marque: req.body.marque,
-              price: req.body.price,
-              reference: req.body.reference,
-              state: req.body.state,
-              type: req.body.type,
-              seller: sellers._id,
-              description: req.body.description,
-              productImage: filesarray,
-              discountPercent: req.body.discountPercent,
-              color: savedColor._id
-            });
-            console.log(face)
-            console.log(savedColor)
-            newproduct.save(function (err, product) {
+                label: req.body.label,
+                category: req.body.category,
+                marque: req.body.marque,
+                price: req.body.price,
+                reference: req.body.reference,
+                state: req.body.state,
+                type: req.body.type,
+                seller: sellers._id,
+                description: req.body.description,
+                productImage: filesarray,
+                discountPercent: req.body.discountPercent,
+                color: savedColor._id,
+              });
+              console.log(face);
+              console.log(savedColor);
+              newproduct.save(function (err, product) {
+                if (err) {
+                  console.log(err.message);
+                  res.json({ success: false, message: err.message });
+                }
+                res.json({
+                  success: true,
+                  message: "product is added with success",
+                  products: product,
+                });
+
+                newrating = new Rate({
+                  nbrpeople: 1,
+                  rating: 1,
+                  product: product._id,
+                });
+                newrating.save(newrating).then((savedrating) => {});
+              });
+            })
+            .catch((err) => {
               if (err) {
-                console.log(err.message);
-                res.json({ success: false, message: err.message });
+                res.json({ msg: err.message });
               }
-              res.json({
-                success: true,
-                message: "product is added with success",
-                products: product,
-              });
-  
-              newrating = new Rate({
-                nbrpeople: 1,
-                rating: 1,
-                product: product._id,
-              });
-              newrating.save(newrating).then((savedrating) => {});
             });
-          }).catch((err) => {
-            if (err) {
-              res.json({ msg: err.message });
-            }
-          }); 
         }
       })
       .catch((err) => {
@@ -473,9 +600,6 @@ router.post(
       });
   }
 );
-
-
-
 
 router.get("/getrating/:id", (req, res) => {
   Product.findById(req.params.id).then((product) => {
@@ -662,10 +786,10 @@ router.put(
       });
     } else {
       let filesarray = [];
-      if(req.files !== undefined) {
+      if (req.files !== undefined) {
         req.files.forEach((element) => {
           filesarray.push(element.path);
-          console.log(element.path)
+          console.log(element.path);
         });
       }
       const {
@@ -687,7 +811,9 @@ router.put(
       if (state) Productfeilds.state = state;
       if (type) Productfeilds.type = type;
       if (description) Productfeilds.description = description;
-      if(req.files !== undefined){  if (req.files) Productfeilds.productImage = filesarray;}
+      if (req.files !== undefined) {
+        if (req.files) Productfeilds.productImage = filesarray;
+      }
 
       Product.findById(req.params.id)
         .then((product) => {
