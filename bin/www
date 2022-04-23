@@ -88,6 +88,7 @@ function onListening() {
  * set up streaming
  */
 const cors = require("cors");
+
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
@@ -95,11 +96,14 @@ const io = require("socket.io")(server, {
   },
 });
 app.use(cors());
+const users = {};
 io.on("connection", (socket) => {
   socket.emit("me", socket.id);
-  
+  users[socket.id] = socket.id;
+
   socket.on("disconnect", () => {
-    socket.broadcast.emit("callEnded");
+    socket.broadcast.emit("user disconnected");
+    delete users[socket.id];
   });
 
   socket.on("callUser", ({ userToCall, signalData, from, name }) => {
@@ -108,5 +112,12 @@ io.on("connection", (socket) => {
 
   socket.on("answerCall", (data) => {
     io.to(data.to).emit("callAccepted", data.signal);
+  });
+
+  socket.on("create-room", (roomInfo) => {
+    console.log(roomInfo);
+    socket.join(roomInfo.room);
+    socket.emit("room-created", roomInfo);
+    console.log("room created ", roomInfo.creator);
   });
 });
