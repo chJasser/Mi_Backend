@@ -1,5 +1,6 @@
 const express = require("express");
 const { auth } = require("../lib/utils");
+const { verifyTokenAdmin } = require("../middleware/verifyToken");
 const paiment = require("../models/paiment");
 
 
@@ -54,6 +55,20 @@ router.post("/add", auth, async (req, res) => {
 
 
 
+
+
+
+router.get("/invoices", [auth, verifyTokenAdmin], async (req, res) => {
+    try {
+        const invoices = await paiment.find().populate("customer")
+        if (!invoices) {
+            return res.status(500).json({ success: false, invoices: [] });;
+        }
+        return res.status(200).json({ success: true, invoices: invoices });
+    } catch (error) {
+        res.status(500).json(error.message);
+    }
+});
 router.get("/:id", [auth], async (req, res) => {
     try {
         const invoice = await paiment.findOne({ paymentId: req.params.id }).populate("customer").populate("products");
@@ -77,7 +92,6 @@ router.get("/", [auth], async (req, res) => {
         res.status(500).json(error.message);
     }
 });
-
 router.delete("/:id", [auth], async (req, res) => {
     paiment.findByIdAndDelete(req.params.id, (err, result) => {
         if (err) {

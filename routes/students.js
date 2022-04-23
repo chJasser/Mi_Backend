@@ -3,7 +3,7 @@ var router = express.Router();
 const Student = require("../models/student");
 const { auth, issueJWT } = require("../lib/utils");
 const User = require("../models/user");
-const { verifyTokenStudent } = require("../middleware/verifyToken");
+const { verifyTokenStudent, verifyTokenAdmin } = require("../middleware/verifyToken");
 
 router.post("/register", [auth], (req, res) => {
   const newStudent = new Student({
@@ -54,7 +54,7 @@ router.post("/register", [auth], (req, res) => {
 router.get("/getcurrentstudent", [auth, verifyTokenStudent], async (req, res) => {
   try {
     const student = await Student.findOne({ user: req.user._id }).populate("user");
-    
+
     if (!student) {
       return res.status(500).json({ student: null });;
     }
@@ -62,6 +62,12 @@ router.get("/getcurrentstudent", [auth, verifyTokenStudent], async (req, res) =>
   } catch (error) {
     res.status(500).json(error.message);
   }
+});
+
+router.get("/get-all-students", [auth, verifyTokenAdmin], async (req, res) => {
+  const students = await Student.find({}).populate("user");
+  if (!students.length) return res.status(404).json("no students found");
+  res.json(students);
 });
 
 module.exports = router;

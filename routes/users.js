@@ -74,6 +74,9 @@ router.get("/get-all-users", [auth, verifyTokenAdmin], async (req, res) => {
   else return res.status(200).json(users);
 });
 
+
+
+
 // find user with email
 router.get("/email/:email", (req, res) => {
   User.findOne({ email: req.params.email }, (err, user) => {
