@@ -2,6 +2,8 @@ const express = require("express");
 const { auth } = require("../lib/utils");
 const { verifyTokenAdmin } = require("../middleware/verifyToken");
 const paiment = require("../models/paiment");
+const event = require("../models/event")
+
 
 
 var router = express.Router();
@@ -37,15 +39,32 @@ router.post("/create-payment-intent", async (req, res) => {
     });
 });
 
-router.post("/add", auth, async (req, res) => {
+router.post("/add", async (req, res) => {
+    let products=req.body.products;
+    products.forEach(prod => {
+        const event1 = new event({
+            userToken:req.body.customer,
+            ObjectID:prod,
+            eventType:"conversion",
+            eventName:"Product add to cart"
+
+        })
+        event1.save();
+            });
+                
+           
     new paiment({ ...req.body })
         .save()
         .then((paiment) => {
+            
+           
+            
             return res.status(201).json({
                 success: true,
                 message: "paiment created !",
                 paiment: paiment,
             });
+           
         })
         .catch((err) => {
             return res.status(500).json({ success: false, message: err.message });
