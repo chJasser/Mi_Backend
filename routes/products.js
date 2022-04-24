@@ -774,37 +774,43 @@ router.put("/rating/:id", auth, (req, res) => {
     });
 });
 
-// router.put(
-//   "/updateImgProduct/:id",
-//   [auth, verifyTokenSeller],
-//   multerUpload.array("files"),
-//   async (req, res) => {
-//     const seller = await Seller.findOne().where("user").equals(req.user._id);
-//     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
-//       return res.status(500).json("Object missing");
-//     } else {
-//       if (!seller) {
-//         res.status(500).json({
-//           success: false,
-//           message: "can't find a seller account related to this user",
-//         });
-//       } else {
-//         Seller.findByIdAndUpdate(
-//           req.params.id,
-//           { $set: { productImage: req.files.path } },
-//           { useFindAndModify: false },
-//           (err, data) => {
-//             if (err) {
-//               res.status(500).json({ success: false, message: err.message });
-//             } else {
-//               res.status(200).json({ success: true, image: req.file.path });
-//             }
-//           }
-//         );
-//       }
-//     }
-//   }
-// );
+router.put(
+  "/updateProductimg/:id",
+  auth,
+  multerUpload.single("picture"),
+
+  async (req, res) => {
+    if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+      return res.status(500).json("Object missing");
+    } else {
+      Product.findById(req.params.id)
+        .then((product) => {
+          if (!product) {
+            return res.json({ msg: "product not find" });
+          } else {
+            Product.findByIdAndUpdate(
+              req.params.id,
+              { $set: { productImage: req.file.path } },
+              //{ useFindAndModify: false },
+              (err, data) => {
+                if (err) {
+                  res
+                    .status(500)
+                    .json({ success: false, message: err.message });
+                } else {
+                  console.log(data)
+                  res.status(200).json({ success: true, image: req.file.path });
+                }
+              }
+            );
+          }
+        })
+        .catch((err) => console.log(err.message));
+    }
+  }
+);
+
+
 
 router.put(
   "/update-product/:id",
