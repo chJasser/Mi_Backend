@@ -81,7 +81,6 @@ const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
 const courseRateRouter = require("./routes/rateCourses");
 const karaokeRouter = require("./routes/karaoke");
-const dialogFlowRouter = require("./routes/dialogFlow");
 const payment = require("./routes/payment");
 const { sendKaraokeInv } = require("./lib/utils");
 /*
@@ -156,7 +155,6 @@ app.use("/users", usersRouter);
 app.use("/rate-course", courseRateRouter);
 app.use("/payment", payment);
 app.use("/uploads", express.static("uploads"));
-app.use("/dialogFlow", dialogFlowRouter);
 /*
 **
 **
