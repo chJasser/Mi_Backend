@@ -7,10 +7,6 @@ const ResourceSchema = new Schema(
       type: String,
       default: "",
     },
-    type: {
-      type: String,
-      required: true,
-    },
     path: {
       type: String,
       required: true,
@@ -18,6 +14,7 @@ const ResourceSchema = new Schema(
     chapter: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chapter",
+      required: true,
     },
   },
   { timestamps: true }

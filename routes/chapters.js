@@ -51,6 +51,15 @@ router.post("/:idCourse", auth, async (req, res) => {
       .status(400)
       .json({ success: false, message: "you are not the owner of the course" });
 });
+//update chpater
+router.put("/:id", auth, async (req, res) => {
+  Chapter.findByIdAndUpdate(req.params.id, {
+    $set: { ...req.body },
+  })
+    .then((data) => res.status(200).json(data))
+    .catch((err) => res.status(400).json(err));
+});
+//delete chapter
 router.delete("/:id", auth, async (req, res) => {
   const chapter = await Chapter.findById(req.params.id);
   if (chapter) {
