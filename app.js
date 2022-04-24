@@ -52,6 +52,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // makes the folder public
 app.use("/uploads", express.static("uploads"));
 app.use("/data/image", express.static("coursedata/images/"));
+app.use("/data/resources", express.static("coursedata/chapters/"));
 /*
  **
  **
@@ -169,10 +170,8 @@ app.use("/dialogFlow", dialogFlowRouter);
 ***
 ***/
 
-
-
 /*****
- * 
+ *
  * daily
  */
 
@@ -201,37 +200,31 @@ const createToken = (room) => {
     .catch((err) => console.log("error:" + err));
 };
 
-
 app.post("/create-token/:roomId", async (req, res) => {
-  const room = req.params.roomId
+  const room = req.params.roomId;
   const token = await createToken(room);
   if (token) {
     res.status(200).json({ status: true, token: token.token });
-
-  }
-  else {
+  } else {
     res.status(400).json({ status: false, message: "no token provided" });
-
   }
-})
+});
 
 app.post("/karaokeinvi", async (req, res) => {
   const { name, email, token, room } = req.body;
   if (!token || !name || !email || !room) {
-    return res.status(500).json({ status: false, message: "Unable to send email" });
+    return res
+      .status(500)
+      .json({ status: false, message: "Unable to send email" });
+  } else {
+    sendKaraokeInv(name, email, token, room);
+    return res
+      .status(200)
+      .json({ status: true, message: "Invitation sent successfully" });
   }
-  else {
-    sendKaraokeInv(name, email, token, room)
-    return res.status(200).json({ status: true, message: "Invitation sent successfully" });
-  }
-})
-
-
-
-
+});
 
 const getRoom = (room) => {
-
   return fetch(`https://api.daily.co/v1/rooms/${room}`, {
     method: "GET",
     headers,
@@ -277,7 +270,7 @@ app.get("/video-call/:id", async function (req, res) {
   }
 });
 /********************************
- * 
+ *
  */
 app.use("/", (req, res) => {
   res.status(400).send("404 Not found");
