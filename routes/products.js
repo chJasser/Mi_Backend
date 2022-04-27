@@ -417,6 +417,7 @@ router.post("/custom", (req, res) => {
     hinges,
     stick,
     circulosDrum,
+    bodyViolin
   } = req.body;
   const category = req.query.category;
   let colors = {};
@@ -430,6 +431,7 @@ router.post("/custom", (req, res) => {
   if (hinges) colors.hinges = hinges;
   if (stick) colors.stick = stick;
   if (circulosDrum) colors.circulosDrum = circulosDrum;
+  if (bodyViolin) colors.bodyViolin = bodyViolin;
 
   var listeFiltre = [];
   //const products = Product.find().then((products) => res.json(products)).catch(err => console.log(err.message));
@@ -484,7 +486,7 @@ router.post("/custom", (req, res) => {
       .catch((err) => console.log(err.message));
   } else if (colors.stick) {
     Color.find({
-      $or: [{ body: colors.body }, { stick: colors.stick }],
+      $or: [{ bodyViolin: colors.bodyViolin }, { stick: colors.stick }],
     })
       .then((list) => {
         console.log(list);
@@ -825,12 +827,12 @@ router.put(
       });
     } else {
       let filesarray = [];
-      if (req.files !== undefined) {
+      //if (req.files !== undefined) {
         req.files.forEach((element) => {
           filesarray.push(element.path);
           console.log(element.path);
         });
-      }
+      //}
       const {
         label,
         category,
