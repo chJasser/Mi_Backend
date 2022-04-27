@@ -32,10 +32,15 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "raccoon": "^0.2.8",
+    "redis": "^4.0.6",
+    "search-insights": "^2.2.1",
     "serve": "^13.0.2",
     "socket.io": "^4.4.1",
     "stripe": "^8.216.0",
     "twilio": "^3.75.0",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "dialogflow": "^0.10.3",
+    "dialogflow-fulfillment": "^0.6.1"
   }
 }
