@@ -42,4 +42,28 @@ router.post("/:id", auth, upload, async (req, res) => {
       .catch((err) => res.status(400).json(err));
   } else res.status(400).json("you are not the owner of the course");
 });
+router.put("/:id", auth, async (req, res) => {
+  const teacher = await Teacher.findOne({ user: req.user.id });
+  const resource = await Resource.findById(req.params.id);
+  const chapter = await Chapter.findById(resource.chapter);
+  const course = await Course.findById(chapter.course);
+  if (!chapter) res.status(400).json("no chapter found");
+  if (!teacher) res.status(400).json("you are not teacher");
+  if (teacher._id.toString() === course.teacher.toString()) {
+    if (req.file) {
+      Resource.findByIdAndUpdate(req.params.id, {
+        $set: { ...req.body, file: req.file.filename },
+      })
+        .then((data) => res.status(200).json(data))
+        .catch((err) => res.status(400).json(err));
+    } else {
+      console.log(req.body);
+      Resource.findByIdAndUpdate(req.params.id, {
+        $set: { ...req.body },
+      })
+        .then((data) => res.status(200).json(data))
+        .catch((err) => res.status(400).json(err));
+    }
+  } else res.status(400).json("you are not the owner of the course");
+});
 module.exports = router;
