@@ -16,6 +16,7 @@ const ResourceSchema = new Schema(
       ref: "Chapter",
       required: true,
     },
+    type: { type: String, required: true },
   },
   { timestamps: true }
 );

@@ -11,6 +11,7 @@ const cookieSession = require("cookie-session");
 const cors = require("cors");
 const flash = require("connect-flash");
 const fetch = require("node-fetch");
+const ResourceData = require("./middleware/chapterUpload");
 /**
  *
  *
