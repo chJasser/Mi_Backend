@@ -3,6 +3,7 @@ const { string } = require("yup");
 const Schema = mongoose.Schema;
 const ResourceSchema = new Schema(
   {
+    title: { type: String, required: true },
     description: {
       type: String,
       default: "",
@@ -16,6 +17,7 @@ const ResourceSchema = new Schema(
       ref: "Chapter",
       required: true,
     },
+    type: { type: String, required: true },
   },
   { timestamps: true }
 );
