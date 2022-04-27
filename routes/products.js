@@ -9,7 +9,7 @@ const Bookmark = require("../models/bookmark");
 const ProductReview = require("../models/productReview");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
-const { verifyTokenSeller } = require("../middleware/verifyToken");
+const { verifyTokenSeller, verifyTokenAdmin } = require("../middleware/verifyToken");
 const {
   TrustProductsEvaluationsContext,
 } = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
@@ -312,7 +312,7 @@ router.post(
                 rating: 1,
                 product: product._id,
               });
-              newrating.save(newrating).then((savedrating) => {});
+              newrating.save(newrating).then((savedrating) => { });
             }
           });
           Color.findOneAndUpdate(
@@ -598,7 +598,7 @@ router.post(
                   rating: 1,
                   product: product._id,
                 });
-                newrating.save(newrating).then((savedrating) => {});
+                newrating.save(newrating).then((savedrating) => { });
               });
             })
             .catch((err) => {
@@ -711,7 +711,7 @@ router.put("/rating/:id", auth, (req, res) => {
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating.save(newrating).then((savedrating) => {});
+                      newrating.save(newrating).then((savedrating) => { });
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -751,7 +751,7 @@ router.put("/rating/:id", auth, (req, res) => {
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating.save(newrating).then((savedrating) => {});
+                      newrating.save(newrating).then((savedrating) => { });
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -1238,5 +1238,17 @@ router.get("/bookmarked-products", auth, async (req, res) => {
  *
  *
  */
+
+
+router.delete("/productadmin/:id", [auth, verifyTokenAdmin], async (req, res) => {
+  Product.findByIdAndDelete(req.params.id, (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false })
+    }
+    else {
+      res.status(200).json({ success: true })
+    }
+  })
+});
 
 module.exports = router;

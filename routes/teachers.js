@@ -133,7 +133,7 @@ router.put(
 
 /* GET teachers . */
 router.get("/get-all-teachers", [auth, verifyTokenAdmin], async (req, res) => {
-  const teachers = await Teacher.find({});
+  const teachers = await Teacher.find({}).populate("user");
   if (!teachers.length) return res.status(404).json("no teachers found");
   res.json(teachers);
 });

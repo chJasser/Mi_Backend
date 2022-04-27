@@ -1,6 +1,6 @@
 const express = require("express");
 const { auth } = require("../lib/utils");
-
+const { verifyTokenAdmin } = require("../middleware/verifyToken");
 const paiment = require("../models/paiment");
 const event = require("../models/event")
 
@@ -24,7 +24,6 @@ const calculateOrderAmount = (items) => {
 
 router.post("/create-payment-intent", async (req, res) => {
     const { amount } = req.body;
-    console.log(amount);
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(calculateOrderAmount(amount)),
@@ -73,23 +72,22 @@ router.post("/add", async (req, res) => {
 
 });
 
-router.get("/", auth, async (req, res) => {
-    console.log(req.body);
-    new paiment({ ...req.body })
-        .save()
-        .then((paiment) => {
-            return res.status(201).json({
-                success: true,
-                message: "paiment created !",
-                paiment: paiment,
-            });
-        })
-        .catch((err) => {
-            return res.status(500).json({ success: false, message: err.message });
-        });
 
+
+
+
+
+router.get("/invoices", [auth, verifyTokenAdmin], async (req, res) => {
+    try {
+        const invoices = await paiment.find().populate("customer")
+        if (!invoices) {
+            return res.status(500).json({ success: false, invoices: [] });;
+        }
+        return res.status(200).json({ success: true, invoices: invoices });
+    } catch (error) {
+        res.status(500).json(error.message);
+    }
 });
-
 router.get("/:id", [auth], async (req, res) => {
     try {
         const invoice = await paiment.findOne({ paymentId: req.params.id }).populate("customer").populate("products");
@@ -100,6 +98,28 @@ router.get("/:id", [auth], async (req, res) => {
     } catch (error) {
         res.status(500).json(error.message);
     }
+});
+
+router.get("/", [auth], async (req, res) => {
+    try {
+        const invoices = await paiment.find({ customer: req.user._id }).populate("products");
+        if (!invoices) {
+            return res.status(500).json({ success: false, invoices: null });;
+        }
+        return res.status(200).json({ success: true, invoices: invoices });
+    } catch (error) {
+        res.status(500).json(error.message);
+    }
+});
+router.delete("/:id", [auth], async (req, res) => {
+    paiment.findByIdAndDelete(req.params.id, (err, result) => {
+        if (err) {
+            res.status(500).json({ success: false })
+        }
+        else {
+            res.status(200).json({ success: true })
+        }
+    })
 });
 
 module.exports = router;

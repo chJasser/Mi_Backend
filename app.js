@@ -52,6 +52,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // makes the folder public
 app.use("/uploads", express.static("uploads"));
 app.use("/data/image", express.static("coursedata/images/"));
+app.use("/data/resources", express.static("coursedata/chapters/"));
 /*
  **
  **
@@ -62,7 +63,7 @@ app.use("/data/image", express.static("coursedata/images/"));
  ***
  ***/
 // routes
-
+const streamingRouter = require("./bin/stream");
 const authenticationRouter = require("./routes/authentication");
 const adminRouter = require("./routes/admins");
 const chapterRouter = require("./routes/chapters");
@@ -80,8 +81,8 @@ const teacherRouter = require("./routes/teachers");
 const usersRouter = require("./routes/users");
 const courseRateRouter = require("./routes/rateCourses");
 const karaokeRouter = require("./routes/karaoke");
-const dialogFlowRouter = require("./routes/dialogFlow");
 const payment = require("./routes/payment");
+const { sendKaraokeInv } = require("./lib/utils");
 /*
  **
  **
@@ -122,7 +123,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-
+app.use("/stream", streamingRouter);
 /*
  **
  **
@@ -154,7 +155,6 @@ app.use("/users", usersRouter);
 app.use("/rate-course", courseRateRouter);
 app.use("/payment", payment);
 app.use("/uploads", express.static("uploads"));
-app.use("/dialogFlow", dialogFlowRouter);
 /*
 **
 **
@@ -168,10 +168,8 @@ app.use("/dialogFlow", dialogFlowRouter);
 ***
 ***/
 
-
-
 /*****
- * 
+ *
  * daily
  */
 
@@ -183,8 +181,48 @@ const headers = {
   Authorization: "Bearer " + API_KEY,
 };
 
-const getRoom = (room) => {
+const createToken = (room) => {
+  return fetch("https://api.daily.co/v1/meeting-tokens", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      properties: {
+        room_name: room,
+      },
+    }),
+  })
+    .then((res) => res.json())
+    .then((json) => {
+      return json;
+    })
+    .catch((err) => console.log("error:" + err));
+};
 
+app.post("/create-token/:roomId", async (req, res) => {
+  const room = req.params.roomId;
+  const token = await createToken(room);
+  if (token) {
+    res.status(200).json({ status: true, token: token.token });
+  } else {
+    res.status(400).json({ status: false, message: "no token provided" });
+  }
+});
+
+app.post("/karaokeinvi", async (req, res) => {
+  const { name, email, token, room } = req.body;
+  if (!token || !name || !email || !room) {
+    return res
+      .status(500)
+      .json({ status: false, message: "Unable to send email" });
+  } else {
+    sendKaraokeInv(name, email, token, room);
+    return res
+      .status(200)
+      .json({ status: true, message: "Invitation sent successfully" });
+  }
+});
+
+const getRoom = (room) => {
   return fetch(`https://api.daily.co/v1/rooms/${room}`, {
     method: "GET",
     headers,
@@ -202,6 +240,7 @@ const createRoom = (room) => {
     headers,
     body: JSON.stringify({
       name: room,
+      privacy: "private",
       properties: {
         enable_screenshare: true,
         enable_chat: true,
@@ -220,8 +259,6 @@ const createRoom = (room) => {
 
 app.get("/video-call/:id", async function (req, res) {
   const roomId = req.params.id;
-
-
   const room = await getRoom(roomId);
   if (room.error) {
     const newRoom = await createRoom(roomId);
@@ -231,7 +268,7 @@ app.get("/video-call/:id", async function (req, res) {
   }
 });
 /********************************
- * 
+ *
  */
 app.use("/", (req, res) => {
   res.status(400).send("404 Not found");

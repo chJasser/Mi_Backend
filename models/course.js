@@ -53,7 +53,6 @@ const CourseSchema = new Schema(
     CourseImage: {
       type: String,
       default: "1648931926897--téléchargement.jpg",
-      required: true,
     },
     teacher: {
       type: mongoose.Schema.Types.ObjectId,

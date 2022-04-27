@@ -30,34 +30,24 @@ router.get("/get-courses", (req, res) => {
     });
 });
 router.get("/get-course/:id", (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid ID",
-    });
-  }
-  Course.aggregate()
-    .addFields({ subscribers: { $size: ["$students"] } })
-    .match({ _id: req.params.id })
-    .then((course) => {
-      if (!course) res.status(204).json("no content");
-      res.status(200).json(course);
-    })
+  Course.findById(req.params.id)
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.status(400).json(err));
 });
 
 //get courses by teacher
-router.get("/course-teacher", async (req, res) => {
-  if (!ObjectId.isValid(req.user.id)) {
+router.get("/course-teacher", auth, async (req, res) => {
+  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+
+  if (!teacher) {
     return res.status(400).json({
       success: false,
-      message: "invalid ID",
+      message: "could not find teacher logged in",
     });
   }
   Course.aggregate()
     .addFields({ subscribers: { $size: ["$students"] } })
-    .where("teacher")
-    .equals(req.user.id)
+    .match({ teacher: teacher._id })
     .then((result) => {
       if (!result)
         res.status(404).json("this teacher does not have any courses yet !");
@@ -72,18 +62,32 @@ router.post("/add", auth, upload, async (req, res) => {
   const teacher = await Teacher.findOne().where("user").equals(req.user.id);
   if (teacher) {
     req.body.teacher = teacher.id;
-    new Course({ ...req.body, CourseImage: req.file.filename })
-      .save()
-      .then((course) => {
-        return res.status(201).json({
-          success: true,
-          message: "courses created !",
-          course: course,
+    if (req.file)
+      new Course({ ...req.body, CourseImage: req.file.filename })
+        .save()
+        .then((course) => {
+          return res.status(201).json({
+            success: true,
+            message: "courses created !",
+            course: course,
+          });
+        })
+        .catch((err) => {
+          return res.status(500).json({ success: false, message: err.message });
         });
-      })
-      .catch((err) => {
-        return res.status(500).json({ success: false, message: err.message });
-      });
+    else
+      new Course({ ...req.body })
+        .save()
+        .then((course) => {
+          return res.status(201).json({
+            success: true,
+            message: "courses created !",
+            course: course,
+          });
+        })
+        .catch((err) => {
+          return res.status(500).json({ success: false, message: err.message });
+        });
   } else {
     return res
       .status(500)
@@ -95,6 +99,7 @@ router.post("/add", auth, upload, async (req, res) => {
 router.put(
   "/update-course/:id",
   auth,
+  upload,
   validate(courseUpdateValidator),
   async (req, res) => {
     if (!ObjectId.isValid(req.params.id)) {
@@ -104,28 +109,46 @@ router.put(
       });
     }
     //get teacher related to the user logged in
-    const teacher = await Teacher.findOne().where("user").equals(req.user.id);
+    const teacher = await Teacher.findOne({ user: req.user.id });
     if (teacher) {
       //get Courses with the id related to the teacher
       let courseToUpdate = await Course.findOne()
         .where("_id")
         .equals(req.params.id);
       if (courseToUpdate.teacher.toString() == teacher.id.toString()) {
-        Course.findByIdAndUpdate(req.params.id, {
-          $set: { ...req.body },
-        })
-          .then((course) => {
-            return res.status(200).json({
-              success: true,
-              message: "course updated",
-            });
+        if (req.file) {
+          Course.findByIdAndUpdate(req.params.id, {
+            $set: { ...req.body, CourseImage: req.file.filename },
           })
-          .catch((err) => {
-            return res.status(500).json({
-              success: false,
-              message: "course did not update error :" + err.message,
+            .then(() => {
+              return res.status(200).json({
+                success: true,
+                message: "course updated",
+              });
+            })
+            .catch((err) => {
+              return res.status(500).json({
+                success: false,
+                message: "course did not update error :" + err.message,
+              });
             });
-          });
+        } else {
+          Course.findByIdAndUpdate(req.params.id, {
+            $set: { ...req.body },
+          })
+            .then(() => {
+              return res.status(200).json({
+                success: true,
+                message: "course updated",
+              });
+            })
+            .catch((err) => {
+              return res.status(500).json({
+                success: false,
+                message: "course did not update error :" + err.message,
+              });
+            });
+        }
       } else {
         return res.status(500).json({
           success: false,
@@ -140,40 +163,30 @@ router.put(
   }
 );
 //delete
-router.delete("/delete-course/:id", auth, async (req, res) => {
-  const teacher = await Teacher.findOne().where("user").equals(req.user.id);
-
-  if (!ObjectId.isValid(req.params.id)) {
+router.delete("/:id", auth, async (req, res) => {
+  const teacher = await Teacher.findOne({ user: req.user.id });
+  const course = await Course.findOne({ _id: req.params.id });
+  if (!course) {
     return res.status(500).json({
       success: false,
-      message: "invalid ID",
+      message: "could not find course",
     });
+  }
+  if (course.teacher.toString() === teacher._id.toString()) {
+    Course.findByIdAndDelete(req.params.id)
+      .then(() => {
+        return res
+          .status(200)
+          .json({ success: true, message: "deleted successfully !" });
+      })
+      .catch((err) => {
+        return res.status(400).json({ success: false, message: err.message });
+      });
   } else {
-    const course = await Course.findOne().where("id").equals(req.params.id);
-    if (!course) {
-      return res.status(500).json({
-        success: false,
-        message: "could not find course",
-      });
-    }
-    if (course.teacher.toString() == teacher.id.toString()) {
-      Course.deleteOne()
-        .where("id")
-        .equals(course.id)
-        .then(() => {
-          return res
-            .status(200)
-            .json({ success: true, message: "deleted successfully !" });
-        })
-        .catch((err) => {
-          return res.status(400).json({ success: false, message: err.message });
-        });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "you're not allowed to delete this course",
-      });
-    }
+    return res.status(400).json({
+      success: false,
+      message: "you're not allowed to delete this course",
+    });
   }
 });
 
@@ -368,9 +381,6 @@ router.get("/details", async (req, res) => {
   }
 
   res.status(200).json({ maxprice, minprice, maxduration, minduration });
-});
-router.post("/upload", upload, (req, res) => {
-  res.send("sccues");
 });
 /**
  *
