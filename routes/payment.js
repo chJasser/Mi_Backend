@@ -62,7 +62,7 @@ router.post("/add", async (req, res) => {
     });
 });
 
-router.get("/invoices", [auth, verifyTokenAdmin], async (req, res) => {
+router.get("/invoices", [auth], async (req, res) => {
   try {
     const invoices = await paiment.find().populate("customer");
     if (!invoices) {
