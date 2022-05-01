@@ -27,6 +27,21 @@ const Color = require("../models/color");
 //   }
 // )
 
+router.get("/sortacs", async (req, res) => {
+  Product.find()
+  .sort({price : 1})
+  .then((prods) => {
+    return res.status(200).json(prods);
+  })
+});
+router.get("/sortdec", async (req, res) => {
+  Product.find()
+  .sort({price : -1})
+  .then((prods) => {
+    return res.status(200).json(prods);
+  })
+});
+
 router.get("/all-products", (req, res) => {
   Product.find()
     .populate("seller")
@@ -355,40 +370,6 @@ router.post("/add-color", [auth, verifyTokenSeller], (req, res) => {
   });
 });
 
-function search(list) {
-  let array = [];
-  const promises = list.map((color) => {
-    Product.findById(color.product);
-  });
-  console.log(promises);
-  return promises;
-}
-
-async function color(list) {
-  const promises = await list.map((color) => {
-    Product.findById(color.product);
-    console.log(color);
-  });
-
-  const arr = await Promise.all(promises);
-  console.log(arr);
-  return arr;
-}
-
-function getProducts(colors) {
-  let promiseList = colors.map(
-    async (color, i) => await Product.findById(color.product).exec()
-  );
-  let products = [];
-  Promise.all(promiseList).then((productList) => {
-    //let result = productList.reduce((acc,product)=> products.push(product));
-
-    console.log(productList);
-    products = productList;
-  });
-  return products;
-}
-
 router.post("/custom-products", async (req, res) => {
   const colors = req.body;
 
@@ -453,7 +434,6 @@ router.post("/custom", (req, res) => {
       ],
     })
       .then((list) => {
-        console.log(list);
         res.json(list);
       })
       .catch((err) => console.log(err.message));
@@ -466,7 +446,6 @@ router.post("/custom", (req, res) => {
       ],
     })
       .then((list) => {
-        console.log(list);
         res.json(list);
       })
       .catch((err) => console.log(err.message));
@@ -480,7 +459,6 @@ router.post("/custom", (req, res) => {
       ],
     })
       .then((list) => {
-        console.log(list);
         res.json(list);
       })
       .catch((err) => console.log(err.message));
@@ -489,7 +467,6 @@ router.post("/custom", (req, res) => {
       $or: [{ bodyViolin: colors.bodyViolin }, { stick: colors.stick }],
     })
       .then((list) => {
-        console.log(list);
         res.json(list);
       })
       .catch((err) => console.log(err.message));
@@ -498,52 +475,11 @@ router.post("/custom", (req, res) => {
       $or: [{ circulosDrum: colors.circulosDrum }],
     })
       .then((list) => {
-        console.log(list);
         res.json(list);
       })
       .catch((err) => console.log(err.message));
   }
 });
-
-router.get(
-  "/custom-filter",
-  //[auth, verifyTokenSeller],
-  (req, res) => {
-    var { face, body, chords } = req.query;
-
-    console.log(face);
-    console.log(body);
-    console.log(chords);
-    //res.json(colors)
-    let listeFiltre = [];
-    Product.find()
-      .then((list) => {
-        list.forEach((p) => {
-          let id_color;
-          if (p.color) id_color = p.color;
-          Color.findById(id_color)
-            .then((c) => {
-              console.log(c);
-              if (c) {
-                if (c.face === face || c.body === body || c.chords === chords) {
-                  console.log(p);
-                  listeFiltre.push(p);
-                } else {
-                  res.json({
-                    success: false,
-                    message: "No match",
-                    products: list,
-                  });
-                }
-              }
-            })
-            .catch((err) => console.log(err.message));
-        });
-        res.json(listeFiltre);
-      })
-      .catch((err) => console.log(err.message));
-  }
-);
 
 router.post(
   "/add-product-color",
@@ -580,8 +516,6 @@ router.post(
                 discountPercent: req.body.discountPercent,
                 color: savedColor._id,
               });
-              console.log(face);
-              console.log(savedColor);
               newproduct.save(function (err, product) {
                 if (err) {
                   console.log(err.message);
