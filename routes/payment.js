@@ -1,5 +1,6 @@
 const express = require("express");
 const { auth } = require("../lib/utils");
+const { verifyTokenAdmin } = require("../middleware/verifyToken");
 const paiment = require("../models/paiment");
 const event = require("../models/event");
 

@@ -23,7 +23,7 @@ router.put("/add-review/:productId", auth, async (req, res) => {
   } else {
     const content = req.body.content;
     if (content) {
-      let newProductReview = new ProductReview({
+      let newProductReview = new ProductReview({    
         content: content,
         user: userToReviewProduct._id,
       });

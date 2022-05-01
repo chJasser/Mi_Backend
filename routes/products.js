@@ -9,7 +9,7 @@ const Bookmark = require("../models/bookmark");
 const ProductReview = require("../models/productReview");
 const { validationResult } = require("express-validator");
 const { multerUpload, auth } = require("../lib/utils");
-const { verifyTokenSeller } = require("../middleware/verifyToken");
+const { verifyTokenSeller, verifyTokenAdmin } = require("../middleware/verifyToken");
 const {
   TrustProductsEvaluationsContext,
 } = require("twilio/lib/rest/trusthub/v1/trustProducts/trustProductsEvaluations");
@@ -312,7 +312,7 @@ router.post(
                 rating: 1,
                 product: product._id,
               });
-              newrating.save(newrating).then((savedrating) => {});
+              newrating.save(newrating).then((savedrating) => { });
             }
           });
           Color.findOneAndUpdate(
@@ -417,6 +417,7 @@ router.post("/custom", (req, res) => {
     hinges,
     stick,
     circulosDrum,
+    bodyViolin
   } = req.body;
   const category = req.query.category;
   let colors = {};
@@ -430,6 +431,7 @@ router.post("/custom", (req, res) => {
   if (hinges) colors.hinges = hinges;
   if (stick) colors.stick = stick;
   if (circulosDrum) colors.circulosDrum = circulosDrum;
+  if (bodyViolin) colors.bodyViolin = bodyViolin;
 
   var listeFiltre = [];
   //const products = Product.find().then((products) => res.json(products)).catch(err => console.log(err.message));
@@ -484,7 +486,7 @@ router.post("/custom", (req, res) => {
       .catch((err) => console.log(err.message));
   } else if (colors.stick) {
     Color.find({
-      $or: [{ body: colors.body }, { stick: colors.stick }],
+      $or: [{ bodyViolin: colors.bodyViolin }, { stick: colors.stick }],
     })
       .then((list) => {
         console.log(list);
@@ -596,7 +598,7 @@ router.post(
                   rating: 1,
                   product: product._id,
                 });
-                newrating.save(newrating).then((savedrating) => {});
+                newrating.save(newrating).then((savedrating) => { });
               });
             })
             .catch((err) => {
@@ -709,7 +711,7 @@ router.put("/rating/:id", auth, (req, res) => {
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating.save(newrating).then((savedrating) => {});
+                      newrating.save(newrating).then((savedrating) => { });
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -749,7 +751,7 @@ router.put("/rating/:id", auth, (req, res) => {
                         rating: req.body.rate,
                         product: req.params.id,
                       });
-                      newrating.save(newrating).then((savedrating) => {});
+                      newrating.save(newrating).then((savedrating) => { });
                     } else {
                       Rate.findOneAndUpdate(
                         { product: req.params.id },
@@ -825,12 +827,12 @@ router.put(
       });
     } else {
       let filesarray = [];
-      if (req.files !== undefined) {
+      //if (req.files !== undefined) {
         req.files.forEach((element) => {
           filesarray.push(element.path);
           console.log(element.path);
         });
-      }
+      //}
       const {
         label,
         category,
@@ -1236,5 +1238,17 @@ router.get("/bookmarked-products", auth, async (req, res) => {
  *
  *
  */
+
+
+router.delete("/productadmin/:id", [auth, verifyTokenAdmin], async (req, res) => {
+  Product.findByIdAndDelete(req.params.id, (err, result) => {
+    if (err) {
+      res.status(500).json({ success: false })
+    }
+    else {
+      res.status(200).json({ success: true })
+    }
+  })
+});
 
 module.exports = router;
