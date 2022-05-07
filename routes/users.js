@@ -127,6 +127,8 @@ router.put(
   multerUpload.single("picture"),
 
   async (req, res) => {
+    console.log("req.body.url");
+    console.log(req.body.url);
     if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
       return res.status(500).json("Object missing");
     } else {
@@ -137,7 +139,7 @@ router.put(
           } else {
             User.findByIdAndUpdate(
               req.params.id,
-              { $set: { profilePicture: req.file.path } },
+              { $set: { profilePicture: req.body.url } },
               { useFindAndModify: false },
               (err, data) => {
                 if (err) {
@@ -145,7 +147,7 @@ router.put(
                     .status(500)
                     .json({ success: false, message: err.message });
                 } else {
-                  res.status(200).json({ success: true, image: req.file.path });
+                  res.status(200).json({ success: true, image: req.body.url });
                 }
               }
             );

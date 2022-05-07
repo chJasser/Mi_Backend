@@ -38,10 +38,12 @@ router.post("/register", [auth, sellerValidator], (req, res) => {
                   return res.status(500).json({ success: false, message: err.message });
                 } else {
                   const userToken = issueJWT(data);
+                  console.log(newSeller)
                   return res.status(200).json({
                     success: true,
                     message: "Account was registered successfully. We will get back for you",
                     token: userToken.token,
+                    id:newSeller._id
 
                   });
                 }

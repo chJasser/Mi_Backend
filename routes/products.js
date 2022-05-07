@@ -29,17 +29,17 @@ const Color = require("../models/color");
 
 router.get("/sortacs", async (req, res) => {
   Product.find()
-  .sort({price : 1})
-  .then((prods) => {
-    return res.status(200).json(prods);
-  })
+    .sort({ price: 1 })
+    .then((prods) => {
+      return res.status(200).json(prods);
+    })
 });
 router.get("/sortdec", async (req, res) => {
   Product.find()
-  .sort({price : -1})
-  .then((prods) => {
-    return res.status(200).json(prods);
-  })
+    .sort({ price: -1 })
+    .then((prods) => {
+      return res.status(200).json(prods);
+    })
 });
 
 router.get("/all-products", (req, res) => {
@@ -295,7 +295,7 @@ router.post(
           req.files.forEach((element) => {
             filesarray.push(element.path);
           });
-
+          let array = req.body.urls.split(',');
           const newproduct = new Product({
             label: req.body.label,
             category: req.body.category,
@@ -306,7 +306,7 @@ router.post(
             type: req.body.type,
             seller: sellers._id,
             description: req.body.description,
-            productImage: filesarray,
+            productImage: array,
             discountPercent: req.body.discountPercent,
             color: req.params.id,
           });
@@ -753,6 +753,7 @@ router.put(
   [auth, verifyTokenSeller],
   multerUpload.array("files"),
   async (req, res) => {
+    console.log(req.body.urls)
     const seller = await Seller.findOne().where("user").equals(req.user._id);
     if (!seller) {
       res.status(500).json({
@@ -762,10 +763,10 @@ router.put(
     } else {
       let filesarray = [];
       //if (req.files !== undefined) {
-        req.files.forEach((element) => {
-          filesarray.push(element.path);
-          console.log(element.path);
-        });
+      req.files.forEach((element) => {
+        filesarray.push(element.path);
+        console.log(element.path);
+      });
       //}
       const {
         label,
@@ -776,6 +777,7 @@ router.put(
         state,
         type,
         description,
+        urls,
       } = req.body;
       let Productfeilds = {};
       if (label) Productfeilds.label = label;
@@ -786,10 +788,10 @@ router.put(
       if (state) Productfeilds.state = state;
       if (type) Productfeilds.type = type;
       if (description) Productfeilds.description = description;
-      if (req.files !== undefined) {
-        if (req.files) Productfeilds.productImage = filesarray;
-      }
-
+      if (urls) {
+        var array = urls.split(',')
+        Productfeilds.productImage = array
+      };
       Product.findById(req.params.id)
         .then((product) => {
           if (!product) {
